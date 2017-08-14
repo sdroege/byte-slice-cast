@@ -1,0 +1,4 @@
+[root]
+name = "byte-slice-cast"
+version = "0.1.0"
+

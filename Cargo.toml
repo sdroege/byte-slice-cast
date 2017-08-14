@@ -1,0 +1,19 @@
+[package]
+name = "byte-slice-cast"
+version = "0.1.0"
+authors = ["Sebastian Dröge <sebastian@centricular.com>"]
+description = "Safely cast bytes slices from/to slices of built-in fundamental numeric types"
+repository = "https://github.com/sdroege/bytes-num-slice-cast"
+license = "MIT"
+readme = "README.md"
+include = [
+    "src/lib.rs",
+    "Cargo.toml",
+    "LICENSE",
+    "README.md",
+]
+
+[dependencies]
+
+[badges]
+travis-ci = { repository = "sdroege/byte-slice-cast", branch = "master" }
