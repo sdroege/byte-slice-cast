@@ -127,10 +127,10 @@ pub unsafe trait FromByteSlice
     where Self: Sized {
     /// Convert from an immutable byte slice to a immutable slice of another fundamental, built-in
     /// numeric type
-    fn from_byte_slice<'a>(&'a [u8]) -> Result<&'a [Self], Error>;
+    fn from_byte_slice<'a, T: AsRef<[u8]>>(&'a T) -> Result<&'a [Self], Error>;
     /// Convert from an mutable byte slice to a mutable slice of another fundamental, built-in
     /// numeric type
-    fn from_mut_byte_slice<'a>(&'a mut [u8]) -> Result<&'a mut [Self], Error>;
+    fn from_mut_byte_slice<'a, T: AsMut<[u8]>>(&'a mut T) -> Result<&'a mut [Self], Error>;
 }
 
 /// Trait for converting from a slice of a fundamental, built-in numeric type to a byte slice.
@@ -151,22 +151,47 @@ pub unsafe trait FromByteSlice
 /// }
 /// # }
 /// ```
-pub unsafe trait ToByteSlice {
-    fn as_byte_slice<'a>(&'a self) -> Result<&'a [u8], Error>;
-    fn as_mut_byte_slice<'a>(&'a mut self) -> Result<&'a mut [u8], Error>;
+pub unsafe trait ToByteSlice
+    where Self: Sized {
+    fn to_byte_slice<'a, T: AsRef<[Self]>>(slice: &'a T) -> Result<&'a [u8], Error>;
+}
+
+/// Trait for converting from a mutable slice of a fundamental, built-in numeric type to a mutable byte slice.
+///
+/// # Example
+/// ```
+/// # extern crate byte_slice_cast;
+/// use byte_slice_cast::*;
+///
+/// # fn main() {
+/// let mut slice: [u16; 3] = [0x0102, 0x0304, 0x0506];
+/// let converted_slice = slice.as_mut_byte_slice().unwrap();
+///
+/// if cfg!(target_endian = "big") {
+///     assert_eq!(converted_slice, &[1u8, 2u8, 3u8, 4u8, 5u8, 6u8]);
+/// } else {
+///     assert_eq!(converted_slice, &[2u8, 1u8, 4u8, 3u8, 6u8, 5u8]);
+/// }
+/// # }
+/// ```
+pub unsafe trait ToMutByteSlice
+    where Self: Sized {
+    fn to_mut_byte_slice<'a, T: AsMut<[Self]>>(slice: &'a mut T) -> Result<&'a mut [u8], Error>;
 }
 
 macro_rules! impl_trait(
     ($to:ty) => {
         unsafe impl FromByteSlice for $to {
-            fn from_byte_slice<'a>(slice: &'a [u8]) -> Result<&'a [$to], Error> {
+            fn from_byte_slice<'a, T: AsRef<[u8]>>(slice: &'a T) -> Result<&'a [$to], Error> {
+                let slice = slice.as_ref();
                 let len = check_constraints::<u8, $to>(slice)?;
                 unsafe {
                     Ok(slice::from_raw_parts(slice.as_ptr() as *const $to, len))
                 }
             }
 
-            fn from_mut_byte_slice<'a>(slice: &'a mut [u8]) -> Result<&'a mut [$to], Error> {
+            fn from_mut_byte_slice<'a, T: AsMut<[u8]>>(slice: &'a mut T) -> Result<&'a mut [$to], Error> {
+                let slice = slice.as_mut();
                 let len = check_constraints::<u8, $to>(slice)?;
                 unsafe {
                     Ok(slice::from_raw_parts_mut(slice.as_mut_ptr() as *mut $to, len))
@@ -174,18 +199,22 @@ macro_rules! impl_trait(
             }
         }
 
-        unsafe impl ToByteSlice for [$to] {
-            fn as_byte_slice<'a>(&'a self) -> Result<&'a [u8], Error> {
-                let len = check_constraints::<$to, u8>(self)?;
+        unsafe impl ToByteSlice for $to {
+            fn to_byte_slice<'a, T: AsRef<[$to]>>(slice: &'a T) -> Result<&'a [u8], Error> {
+                let slice = slice.as_ref();
+                let len = check_constraints::<$to, u8>(slice)?;
                 unsafe {
-                    Ok(slice::from_raw_parts(self.as_ptr() as *const u8, len))
+                    Ok(slice::from_raw_parts(slice.as_ptr() as *const u8, len))
                 }
             }
+        }
 
-            fn as_mut_byte_slice<'a>(&'a mut self) -> Result<&'a mut [u8], Error> {
-                let len = check_constraints::<$to, u8>(self)?;
+        unsafe impl ToMutByteSlice for $to {
+            fn to_mut_byte_slice<'a, T: AsMut<[$to]>>(slice: &'a mut T) -> Result<&'a mut [u8], Error> {
+                let slice = slice.as_mut();
+                let len = check_constraints::<$to, u8>(slice)?;
                 unsafe {
-                    Ok(slice::from_raw_parts_mut(self.as_mut_ptr() as *mut u8, len))
+                    Ok(slice::from_raw_parts_mut(slice.as_mut_ptr() as *mut u8, len))
                 }
             }
         }
@@ -224,14 +253,38 @@ impl_trait!(f64);
 /// ```
 pub trait AsSliceOf {
     fn as_slice_of<'a, T: FromByteSlice>(&'a self) -> Result<&'a [T], Error>;
+}
+
+/// Trait for converting from a mutable byte slice to a mutable slice of another fundamental,
+/// built-in numeric type. This trait is usually more convenient to use than `FromByteSlice`.
+///
+/// # Example
+/// ```
+/// # extern crate byte_slice_cast;
+/// use byte_slice_cast::*;
+///
+/// # fn main() {
+/// let mut slice = [1u8, 2u8, 3u8, 4u8, 5u8, 6u8];
+/// let converted_slice = slice.as_mut_slice_of::<u16>().unwrap();
+///
+/// if cfg!(target_endian = "big") {
+///     assert_eq!(converted_slice, &[0x0102, 0x0304, 0x0506]);
+/// } else {
+///     assert_eq!(converted_slice, &[0x0201, 0x0403, 0x0605]);
+/// }
+/// # }
+/// ```
+pub trait AsMutSliceOf {
     fn as_mut_slice_of<'a, T: FromByteSlice>(&'a mut self) -> Result<&'a mut [T], Error>;
 }
 
-impl AsSliceOf for [u8] {
+impl<U: AsRef<[u8]>> AsSliceOf for U {
     fn as_slice_of<'a, T: FromByteSlice>(&'a self) -> Result<&'a [T], Error> {
         FromByteSlice::from_byte_slice(self)
     }
+}
 
+impl<U: AsMut<[u8]>> AsMutSliceOf for U {
     fn as_mut_slice_of<'a, T: FromByteSlice>(&'a mut self) -> Result<&'a mut [T], Error> {
         FromByteSlice::from_mut_byte_slice(self)
     }
