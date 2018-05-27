@@ -10,6 +10,9 @@ specifically the [variant used by Rust](http://doc.crates.io/manifest.html#the-v
 - Major refactoring of how the traits work. It is now possible to work
   directly on `AsRef<[T]>` and `AsMut<[T]>`, e.g. on `Vec<T>` and `Box<[T]>`.
 
+### Added
+- Trait impls for i128 and u128.
+
 ## [0.1.0] - 2017-08-14
 - Initial release of the `byte-slice-cast` crate.
 

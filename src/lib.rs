@@ -246,10 +246,12 @@ impl_trait!(u8);
 impl_trait!(u16);
 impl_trait!(u32);
 impl_trait!(u64);
+impl_trait!(u128);
 impl_trait!(i8);
 impl_trait!(i16);
 impl_trait!(i32);
 impl_trait!(i64);
+impl_trait!(i128);
 impl_trait!(f32);
 impl_trait!(f64);
 
