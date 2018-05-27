@@ -1,4 +1,4 @@
-// Copyright (C) 2017 Sebastian Dröge <sebastian@centricular.com>
+// Copyright (C) 2017,2018 Sebastian Dröge <sebastian@centricular.com>
 //
 // Licensed under the MIT license, see the LICENSE file or <http://opensource.org/licenses/MIT>
 
@@ -8,6 +8,10 @@
 //! numeric types, like integers and floating point numbers. During casting, checks are performed
 //! to ensure that the output slice is safe to use: the input slice must be properly aligned for
 //! the output type and contain an integer number of values.
+//!
+//! Instead of working only on slices, the traits work on `AsRef<[T]>` in the immutable case and on
+//! `AsMut<[T]>` for the mutable case. As such, it is possible to directly work on e.g. `Vec<T>`
+//! and `Box<[T]>` too.
 //!
 //! The content of the output slice will be bitwise equivalent to the input slice, as such extra
 //! care has to be taken with regard to endianness.
@@ -53,9 +57,9 @@
 //! # }
 //! ```
 
-use std::slice;
 use std::fmt;
 use std::mem;
+use std::slice;
 
 use std::error::Error as StdError;
 
@@ -104,8 +108,9 @@ fn check_constraints<T, U>(data: &[T]) -> Result<usize, Error> {
     Ok((data.len() * size_in) / size_out)
 }
 
-/// Trait for converting from a byte slice to a slice of another fundamental, built-in numeric
-/// type. Usually using the `AsSliceOf` trait is more convenient.
+/// Trait for converting from a byte slice to a slice of a fundamental, built-in numeric type.
+///
+/// Usually using the `AsSliceOf` and `AsMutSliceOf` traits is more convenient.
 ///
 /// # Example
 /// ```
@@ -124,16 +129,21 @@ fn check_constraints<T, U>(data: &[T]) -> Result<usize, Error> {
 /// # }
 /// ```
 pub unsafe trait FromByteSlice
-    where Self: Sized {
-    /// Convert from an immutable byte slice to a immutable slice of another fundamental, built-in
+where
+    Self: Sized,
+{
+    /// Convert from an immutable byte slice to a immutable slice of a fundamental, built-in
     /// numeric type
     fn from_byte_slice<'a, T: AsRef<[u8]>>(&'a T) -> Result<&'a [Self], Error>;
-    /// Convert from an mutable byte slice to a mutable slice of another fundamental, built-in
-    /// numeric type
+    /// Convert from an mutable byte slice to a mutable slice of a fundamental, built-in numeric
+    /// type
     fn from_mut_byte_slice<'a, T: AsMut<[u8]>>(&'a mut T) -> Result<&'a mut [Self], Error>;
 }
 
-/// Trait for converting from a slice of a fundamental, built-in numeric type to a byte slice.
+/// Trait for converting from an immutable slice of a fundamental, built-in numeric type to an
+/// immutable byte slice.
+///
+/// Usually using the `AsByteSlice` trait is more convenient.
 ///
 /// # Example
 /// ```
@@ -142,7 +152,7 @@ pub unsafe trait FromByteSlice
 ///
 /// # fn main() {
 /// let slice: [u16; 3] = [0x0102, 0x0304, 0x0506];
-/// let converted_slice = slice.as_byte_slice().unwrap();
+/// let converted_slice = ToByteSlice::to_byte_slice(&slice).unwrap();
 ///
 /// if cfg!(target_endian = "big") {
 ///     assert_eq!(converted_slice, &[1u8, 2u8, 3u8, 4u8, 5u8, 6u8]);
@@ -152,11 +162,18 @@ pub unsafe trait FromByteSlice
 /// # }
 /// ```
 pub unsafe trait ToByteSlice
-    where Self: Sized {
+where
+    Self: Sized,
+{
+    /// Convert from an immutable slice of a fundamental, built-in numeric type to an immutable
+    /// byte slice
     fn to_byte_slice<'a, T: AsRef<[Self]>>(slice: &'a T) -> Result<&'a [u8], Error>;
 }
 
-/// Trait for converting from a mutable slice of a fundamental, built-in numeric type to a mutable byte slice.
+/// Trait for converting from a mutable slice of a fundamental, built-in numeric type to a mutable
+/// byte slice.
+///
+/// Usually using the `AsMutByteSlice` trait is more convenient.
 ///
 /// # Example
 /// ```
@@ -165,7 +182,7 @@ pub unsafe trait ToByteSlice
 ///
 /// # fn main() {
 /// let mut slice: [u16; 3] = [0x0102, 0x0304, 0x0506];
-/// let converted_slice = slice.as_mut_byte_slice().unwrap();
+/// let converted_slice = ToMutByteSlice::to_mut_byte_slice(&mut slice).unwrap();
 ///
 /// if cfg!(target_endian = "big") {
 ///     assert_eq!(converted_slice, &[1u8, 2u8, 3u8, 4u8, 5u8, 6u8]);
@@ -175,7 +192,11 @@ pub unsafe trait ToByteSlice
 /// # }
 /// ```
 pub unsafe trait ToMutByteSlice
-    where Self: Sized {
+where
+    Self: Sized,
+{
+    /// Convert from a mutable slice of a fundamental, built-in numeric type to a mutable byte
+    /// slice
     fn to_mut_byte_slice<'a, T: AsMut<[Self]>>(slice: &'a mut T) -> Result<&'a mut [u8], Error>;
 }
 
@@ -232,8 +253,9 @@ impl_trait!(i64);
 impl_trait!(f32);
 impl_trait!(f64);
 
-/// Trait for converting from a byte slice to a slice of another fundamental, built-in numeric
-/// type. This trait is usually more convenient to use than `FromByteSlice`.
+/// Trait for converting from a byte slice to a slice of a fundamental, built-in numeric type.
+///
+/// This trait is usually more convenient to use than `FromByteSlice`.
 ///
 /// # Example
 /// ```
@@ -255,8 +277,16 @@ pub trait AsSliceOf {
     fn as_slice_of<'a, T: FromByteSlice>(&'a self) -> Result<&'a [T], Error>;
 }
 
-/// Trait for converting from a mutable byte slice to a mutable slice of another fundamental,
-/// built-in numeric type. This trait is usually more convenient to use than `FromByteSlice`.
+impl<U: AsRef<[u8]>> AsSliceOf for U {
+    fn as_slice_of<'a, T: FromByteSlice>(&'a self) -> Result<&'a [T], Error> {
+        FromByteSlice::from_byte_slice(self)
+    }
+}
+
+/// Trait for converting from a mutable byte slice to a mutable slice of a fundamental, built-in
+/// numeric type.
+///
+/// This trait is usually more convenient to use than `FromByteSlice`.
 ///
 /// # Example
 /// ```
@@ -278,15 +308,69 @@ pub trait AsMutSliceOf {
     fn as_mut_slice_of<'a, T: FromByteSlice>(&'a mut self) -> Result<&'a mut [T], Error>;
 }
 
-impl<U: AsRef<[u8]>> AsSliceOf for U {
-    fn as_slice_of<'a, T: FromByteSlice>(&'a self) -> Result<&'a [T], Error> {
-        FromByteSlice::from_byte_slice(self)
-    }
-}
-
 impl<U: AsMut<[u8]>> AsMutSliceOf for U {
     fn as_mut_slice_of<'a, T: FromByteSlice>(&'a mut self) -> Result<&'a mut [T], Error> {
         FromByteSlice::from_mut_byte_slice(self)
+    }
+}
+
+/// Trait for converting from an immutable slice of a fundamental, built-in numeric type to an
+/// immutable byte slice.
+///
+/// This trait is usually more convenient to use than `ToByteSlice`.
+///
+/// # Example
+/// ```
+/// # extern crate byte_slice_cast;
+/// use byte_slice_cast::*;
+///
+/// # fn main() {
+/// let slice: [u16; 3] = [0x0102, 0x0304, 0x0506];
+/// let converted_slice = slice.as_byte_slice().unwrap();
+///
+/// if cfg!(target_endian = "big") {
+///     assert_eq!(converted_slice, &[1u8, 2u8, 3u8, 4u8, 5u8, 6u8]);
+/// } else {
+///     assert_eq!(converted_slice, &[2u8, 1u8, 4u8, 3u8, 6u8, 5u8]);
+/// }
+/// # }
+/// ```
+pub trait AsByteSlice<T> {
+    fn as_byte_slice<'a>(&'a self) -> Result<&'a [u8], Error>;
+}
+
+impl<T: ToByteSlice, U: AsRef<[T]>> AsByteSlice<T> for U {
+    fn as_byte_slice<'a>(&'a self) -> Result<&'a [u8], Error> {
+        ToByteSlice::to_byte_slice(self)
+    }
+}
+
+/// Trait for converting from a mutable slice of a fundamental, built-in numeric type to a mutable
+/// byte slice. This trait is usually more convenient to use than `ToMutByteSlice`.
+///
+/// # Example
+/// ```
+/// # extern crate byte_slice_cast;
+/// use byte_slice_cast::*;
+///
+/// # fn main() {
+/// let mut slice: [u16; 3] = [0x0102, 0x0304, 0x0506];
+/// let converted_slice = slice.as_mut_byte_slice().unwrap();
+///
+/// if cfg!(target_endian = "big") {
+///     assert_eq!(converted_slice, &mut [1u8, 2u8, 3u8, 4u8, 5u8, 6u8]);
+/// } else {
+///     assert_eq!(converted_slice, &mut [2u8, 1u8, 4u8, 3u8, 6u8, 5u8]);
+/// }
+/// # }
+/// ```
+pub trait AsMutByteSlice<T> {
+    fn as_mut_byte_slice<'a>(&'a mut self) -> Result<&'a mut [u8], Error>;
+}
+
+impl<T: ToMutByteSlice, U: AsMut<[T]>> AsMutByteSlice<T> for U {
+    fn as_mut_byte_slice<'a>(&'a mut self) -> Result<&'a mut [u8], Error> {
+        ToMutByteSlice::to_mut_byte_slice(self)
     }
 }
 
@@ -316,10 +400,12 @@ mod tests {
             assert_eq!(bytes, &[0, 0, 1, 0, 2, 0, 3, 0, 4, 0, 5, 0, 6, 0, 7, 0]);
         }
 
-
-        assert_eq!(bytes[1..].as_slice_of::<u16>(), Err(Error::WrongAlignment));
         assert_eq!(
-            [0u8; 17].as_slice_of::<u16>(),
+            (&bytes[1..]).as_slice_of::<u16>(),
+            Err(Error::WrongAlignment)
+        );
+        assert_eq!(
+            (&bytes[0..15]).as_slice_of::<u16>(),
             Err(Error::IncompleteNumberOfValues)
         );
         assert_eq!(bytes.as_slice_of::<u16>(), Ok(slice.as_ref()));
@@ -336,10 +422,12 @@ mod tests {
             assert_eq!(bytes, &[0, 0, 0, 0, 1, 0, 0, 0, 2, 0, 0, 0, 3, 0, 0, 0]);
         }
 
-
-        assert_eq!(bytes[1..].as_slice_of::<u32>(), Err(Error::WrongAlignment));
         assert_eq!(
-            [0u8; 17].as_slice_of::<u32>(),
+            (&bytes[1..]).as_slice_of::<u32>(),
+            Err(Error::WrongAlignment)
+        );
+        assert_eq!(
+            (&bytes[0..15]).as_slice_of::<u32>(),
             Err(Error::IncompleteNumberOfValues)
         );
         assert_eq!(bytes.as_slice_of::<u32>(), Ok(slice.as_ref()));
@@ -356,10 +444,12 @@ mod tests {
             assert_eq!(bytes, &[0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0]);
         }
 
-
-        assert_eq!(bytes[1..].as_slice_of::<u64>(), Err(Error::WrongAlignment));
         assert_eq!(
-            [0u8; 17].as_slice_of::<u64>(),
+            (&bytes[1..]).as_slice_of::<u64>(),
+            Err(Error::WrongAlignment)
+        );
+        assert_eq!(
+            (&bytes[0..15]).as_slice_of::<u64>(),
             Err(Error::IncompleteNumberOfValues)
         );
         assert_eq!(bytes.as_slice_of::<u64>(), Ok(slice.as_ref()));
@@ -374,56 +464,30 @@ mod tests {
             assert_eq!(
                 bytes,
                 [
-                    0x40,
-                    0x00,
-                    0x00,
-                    0x00,
-                    0x3f,
-                    0x80,
-                    0x00,
-                    0x00,
-                    0x3f,
-                    0x00,
-                    0x00,
-                    0x00,
-                    0x3e,
-                    0x80,
-                    0x00,
-                    0x00
+                    0x40, 0x00, 0x00, 0x00, 0x3f, 0x80, 0x00, 0x00, 0x3f, 0x00, 0x00, 0x00, 0x3e,
+                    0x80, 0x00, 0x00
                 ]
             );
         } else {
             assert_eq!(
                 bytes,
                 [
-                    0x00,
-                    0x00,
-                    0x00,
-                    0x40,
-                    0x00,
-                    0x00,
-                    0x80,
-                    0x3f,
-                    0x00,
-                    0x00,
-                    0x00,
-                    0x3f,
-                    0x00,
-                    0x00,
-                    0x80,
-                    0x3e
+                    0x00, 0x00, 0x00, 0x40, 0x00, 0x00, 0x80, 0x3f, 0x00, 0x00, 0x00, 0x3f, 0x00,
+                    0x00, 0x80, 0x3e
                 ]
             );
         };
 
-        assert_eq!(bytes[1..].as_slice_of::<f32>(), Err(Error::WrongAlignment));
         assert_eq!(
-            [0u8; 17].as_slice_of::<f32>(),
+            (&bytes[1..]).as_slice_of::<f32>(),
+            Err(Error::WrongAlignment)
+        );
+        assert_eq!(
+            (&bytes[0..15]).as_slice_of::<f32>(),
             Err(Error::IncompleteNumberOfValues)
         );
         assert_eq!(bytes.as_slice_of::<f32>(), Ok(slice.as_ref()));
     }
-
 
     #[test]
     fn f64() {
@@ -434,53 +498,141 @@ mod tests {
             assert_eq!(
                 bytes,
                 [
-                    0x40,
-                    0x00,
-                    0x00,
-                    0x00,
-                    0x00,
-                    0x00,
-                    0x00,
-                    0x00,
-                    0x3f,
-                    0xe0,
-                    0x00,
-                    0x00,
-                    0x00,
-                    0x00,
-                    0x00,
-                    0x00
+                    0x40, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x3f, 0xe0, 0x00, 0x00, 0x00,
+                    0x00, 0x00, 0x00
                 ]
             );
         } else {
             assert_eq!(
                 bytes,
                 [
-                    0x00,
-                    0x00,
-                    0x00,
-                    0x00,
-                    0x00,
-                    0x00,
-                    0x00,
-                    0x40,
-                    0x00,
-                    0x00,
-                    0x00,
-                    0x00,
-                    0x00,
-                    0x00,
-                    0xe0,
-                    0x3f
+                    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x40, 0x00, 0x00, 0x00, 0x00, 0x00,
+                    0x00, 0xe0, 0x3f
                 ]
             );
         };
 
-        assert_eq!(bytes[1..].as_slice_of::<f64>(), Err(Error::WrongAlignment));
         assert_eq!(
-            [0u8; 17].as_slice_of::<f64>(),
+            (&bytes[1..]).as_slice_of::<f64>(),
+            Err(Error::WrongAlignment)
+        );
+        assert_eq!(
+            (&bytes[0..15]).as_slice_of::<f64>(),
             Err(Error::IncompleteNumberOfValues)
         );
         assert_eq!(bytes.as_slice_of::<f64>(), Ok(slice.as_ref()));
+    }
+
+    #[test]
+    fn u16_mut() {
+        let mut slice: [u16; 8] = [0, 1, 2, 3, 4, 5, 6, 7];
+        let mut slice_2: [u16; 8] = [0, 1, 2, 3, 4, 5, 6, 7];
+        let mut bytes = slice_2.as_mut_byte_slice().unwrap();
+
+        if cfg!(target_endian = "big") {
+            assert_eq!(bytes, &[0, 0, 0, 1, 0, 2, 0, 3, 0, 4, 0, 5, 0, 6, 0, 7]);
+        } else {
+            assert_eq!(bytes, &[0, 0, 1, 0, 2, 0, 3, 0, 4, 0, 5, 0, 6, 0, 7, 0]);
+        }
+
+        assert_eq!(
+            (&mut bytes[1..]).as_mut_slice_of::<u16>(),
+            Err(Error::WrongAlignment)
+        );
+        assert_eq!(
+            (&mut bytes[0..15]).as_mut_slice_of::<u16>(),
+            Err(Error::IncompleteNumberOfValues)
+        );
+        assert_eq!(bytes.as_mut_slice_of::<u16>(), Ok(slice.as_mut()));
+    }
+
+    #[test]
+    fn u16_vec() {
+        let vec: Vec<u16> = vec![0, 1, 2, 3, 4, 5, 6, 7];
+        let bytes = vec.as_byte_slice().unwrap();
+
+        if cfg!(target_endian = "big") {
+            assert_eq!(bytes, &[0, 0, 0, 1, 0, 2, 0, 3, 0, 4, 0, 5, 0, 6, 0, 7]);
+        } else {
+            assert_eq!(bytes, &[0, 0, 1, 0, 2, 0, 3, 0, 4, 0, 5, 0, 6, 0, 7, 0]);
+        }
+
+        assert_eq!(
+            (&bytes[1..]).as_slice_of::<u16>(),
+            Err(Error::WrongAlignment)
+        );
+        assert_eq!(
+            (&bytes[0..15]).as_slice_of::<u16>(),
+            Err(Error::IncompleteNumberOfValues)
+        );
+        assert_eq!(bytes.as_slice_of::<u16>(), Ok(vec.as_ref()));
+    }
+
+    #[test]
+    fn u16_mut_vec() {
+        let mut vec: Vec<u16> = vec![0, 1, 2, 3, 4, 5, 6, 7];
+        let mut vec_clone = vec.clone();
+        let mut bytes = vec_clone.as_mut_byte_slice().unwrap();
+
+        if cfg!(target_endian = "big") {
+            assert_eq!(bytes, &[0, 0, 0, 1, 0, 2, 0, 3, 0, 4, 0, 5, 0, 6, 0, 7]);
+        } else {
+            assert_eq!(bytes, &[0, 0, 1, 0, 2, 0, 3, 0, 4, 0, 5, 0, 6, 0, 7, 0]);
+        }
+
+        assert_eq!(
+            (&mut bytes[1..]).as_mut_slice_of::<u16>(),
+            Err(Error::WrongAlignment)
+        );
+        assert_eq!(
+            (&mut bytes[0..15]).as_mut_slice_of::<u16>(),
+            Err(Error::IncompleteNumberOfValues)
+        );
+        assert_eq!(bytes.as_mut_slice_of::<u16>(), Ok(vec.as_mut()));
+    }
+
+    #[test]
+    fn u16_box_slice() {
+        let vec: Box<[u16]> = vec![0, 1, 2, 3, 4, 5, 6, 7].into_boxed_slice();
+        let bytes = vec.as_byte_slice().unwrap();
+
+        if cfg!(target_endian = "big") {
+            assert_eq!(bytes, &[0, 0, 0, 1, 0, 2, 0, 3, 0, 4, 0, 5, 0, 6, 0, 7]);
+        } else {
+            assert_eq!(bytes, &[0, 0, 1, 0, 2, 0, 3, 0, 4, 0, 5, 0, 6, 0, 7, 0]);
+        }
+
+        assert_eq!(
+            (&bytes[1..]).as_slice_of::<u16>(),
+            Err(Error::WrongAlignment)
+        );
+        assert_eq!(
+            (&bytes[0..15]).as_slice_of::<u16>(),
+            Err(Error::IncompleteNumberOfValues)
+        );
+        assert_eq!(bytes.as_slice_of::<u16>(), Ok(vec.as_ref()));
+    }
+
+    #[test]
+    fn u16_mut_box_slice() {
+        let mut vec: Box<[u16]> = vec![0, 1, 2, 3, 4, 5, 6, 7].into_boxed_slice();
+        let mut vec_clone: Box<[u16]> = vec![0, 1, 2, 3, 4, 5, 6, 7].into_boxed_slice();
+        let mut bytes = vec_clone.as_mut_byte_slice().unwrap();
+
+        if cfg!(target_endian = "big") {
+            assert_eq!(bytes, &[0, 0, 0, 1, 0, 2, 0, 3, 0, 4, 0, 5, 0, 6, 0, 7]);
+        } else {
+            assert_eq!(bytes, &[0, 0, 1, 0, 2, 0, 3, 0, 4, 0, 5, 0, 6, 0, 7, 0]);
+        }
+
+        assert_eq!(
+            (&mut bytes[1..]).as_mut_slice_of::<u16>(),
+            Err(Error::WrongAlignment)
+        );
+        assert_eq!(
+            (&mut bytes[0..15]).as_mut_slice_of::<u16>(),
+            Err(Error::IncompleteNumberOfValues)
+        );
+        assert_eq!(bytes.as_mut_slice_of::<u16>(), Ok(vec.as_mut()));
     }
 }
