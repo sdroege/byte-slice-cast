@@ -529,7 +529,7 @@ mod tests {
     fn u16_mut() {
         let mut slice: [u16; 8] = [0, 1, 2, 3, 4, 5, 6, 7];
         let mut slice_2: [u16; 8] = [0, 1, 2, 3, 4, 5, 6, 7];
-        let mut bytes = slice_2.as_mut_byte_slice().unwrap();
+        let bytes = slice_2.as_mut_byte_slice().unwrap();
 
         if cfg!(target_endian = "big") {
             assert_eq!(bytes, &[0, 0, 0, 1, 0, 2, 0, 3, 0, 4, 0, 5, 0, 6, 0, 7]);
@@ -574,7 +574,7 @@ mod tests {
     fn u16_mut_vec() {
         let mut vec: Vec<u16> = vec![0, 1, 2, 3, 4, 5, 6, 7];
         let mut vec_clone = vec.clone();
-        let mut bytes = vec_clone.as_mut_byte_slice().unwrap();
+        let bytes = vec_clone.as_mut_byte_slice().unwrap();
 
         if cfg!(target_endian = "big") {
             assert_eq!(bytes, &[0, 0, 0, 1, 0, 2, 0, 3, 0, 4, 0, 5, 0, 6, 0, 7]);
@@ -619,7 +619,7 @@ mod tests {
     fn u16_mut_box_slice() {
         let mut vec: Box<[u16]> = vec![0, 1, 2, 3, 4, 5, 6, 7].into_boxed_slice();
         let mut vec_clone: Box<[u16]> = vec![0, 1, 2, 3, 4, 5, 6, 7].into_boxed_slice();
-        let mut bytes = vec_clone.as_mut_byte_slice().unwrap();
+        let bytes = vec_clone.as_mut_byte_slice().unwrap();
 
         if cfg!(target_endian = "big") {
             assert_eq!(bytes, &[0, 0, 0, 1, 0, 2, 0, 3, 0, 4, 0, 5, 0, 6, 0, 7]);
