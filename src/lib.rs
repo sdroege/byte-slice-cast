@@ -134,10 +134,10 @@ where
 {
     /// Convert from an immutable byte slice to a immutable slice of a fundamental, built-in
     /// numeric type
-    fn from_byte_slice<T: AsRef<[u8]>>(&T) -> Result<&[Self], Error>;
+    fn from_byte_slice<T: AsRef<[u8]> + ?Sized>(&T) -> Result<&[Self], Error>;
     /// Convert from an mutable byte slice to a mutable slice of a fundamental, built-in numeric
     /// type
-    fn from_mut_byte_slice<T: AsMut<[u8]>>(&mut T) -> Result<&mut [Self], Error>;
+    fn from_mut_byte_slice<T: AsMut<[u8]> + ?Sized>(&mut T) -> Result<&mut [Self], Error>;
 }
 
 /// Trait for converting from an immutable slice of a fundamental, built-in numeric type to an
@@ -167,7 +167,7 @@ where
 {
     /// Convert from an immutable slice of a fundamental, built-in numeric type to an immutable
     /// byte slice
-    fn to_byte_slice<T: AsRef<[Self]>>(slice: &T) -> Result<&[u8], Error>;
+    fn to_byte_slice<T: AsRef<[Self]> + ?Sized>(slice: &T) -> Result<&[u8], Error>;
 }
 
 /// Trait for converting from a mutable slice of a fundamental, built-in numeric type to a mutable
@@ -197,13 +197,13 @@ where
 {
     /// Convert from a mutable slice of a fundamental, built-in numeric type to a mutable byte
     /// slice
-    fn to_mut_byte_slice<T: AsMut<[Self]>>(slice: &mut T) -> Result<&mut [u8], Error>;
+    fn to_mut_byte_slice<T: AsMut<[Self]> + ?Sized>(slice: &mut T) -> Result<&mut [u8], Error>;
 }
 
 macro_rules! impl_trait(
     ($to:ty) => {
         unsafe impl FromByteSlice for $to {
-            fn from_byte_slice<T: AsRef<[u8]>>(slice: &T) -> Result<&[$to], Error> {
+            fn from_byte_slice<T: AsRef<[u8]> + ?Sized>(slice: &T) -> Result<&[$to], Error> {
                 let slice = slice.as_ref();
                 let len = check_constraints::<u8, $to>(slice)?;
                 unsafe {
@@ -211,7 +211,7 @@ macro_rules! impl_trait(
                 }
             }
 
-            fn from_mut_byte_slice<T: AsMut<[u8]>>(slice: &mut T) -> Result<&mut [$to], Error> {
+            fn from_mut_byte_slice<T: AsMut<[u8]> + ?Sized>(slice: &mut T) -> Result<&mut [$to], Error> {
                 let slice = slice.as_mut();
                 let len = check_constraints::<u8, $to>(slice)?;
                 unsafe {
@@ -221,7 +221,7 @@ macro_rules! impl_trait(
         }
 
         unsafe impl ToByteSlice for $to {
-            fn to_byte_slice<T: AsRef<[$to]>>(slice: &T) -> Result<&[u8], Error> {
+            fn to_byte_slice<T: AsRef<[$to]> + ?Sized>(slice: &T) -> Result<&[u8], Error> {
                 let slice = slice.as_ref();
                 let len = check_constraints::<$to, u8>(slice)?;
                 unsafe {
@@ -231,7 +231,7 @@ macro_rules! impl_trait(
         }
 
         unsafe impl ToMutByteSlice for $to {
-            fn to_mut_byte_slice<T: AsMut<[$to]>>(slice: &mut T) -> Result<&mut [u8], Error> {
+            fn to_mut_byte_slice<T: AsMut<[$to]> + ?Sized>(slice: &mut T) -> Result<&mut [u8], Error> {
                 let slice = slice.as_mut();
                 let len = check_constraints::<$to, u8>(slice)?;
                 unsafe {
@@ -279,7 +279,7 @@ pub trait AsSliceOf {
     fn as_slice_of<T: FromByteSlice>(&self) -> Result<&[T], Error>;
 }
 
-impl<U: AsRef<[u8]>> AsSliceOf for U {
+impl<U: AsRef<[u8]> + ?Sized> AsSliceOf for U {
     fn as_slice_of<T: FromByteSlice>(&self) -> Result<&[T], Error> {
         FromByteSlice::from_byte_slice(self)
     }
@@ -310,7 +310,7 @@ pub trait AsMutSliceOf {
     fn as_mut_slice_of<T: FromByteSlice>(&mut self) -> Result<&mut [T], Error>;
 }
 
-impl<U: AsMut<[u8]>> AsMutSliceOf for U {
+impl<U: AsMut<[u8]> + ?Sized> AsMutSliceOf for U {
     fn as_mut_slice_of<T: FromByteSlice>(&mut self) -> Result<&mut [T], Error> {
         FromByteSlice::from_mut_byte_slice(self)
     }
@@ -341,7 +341,7 @@ pub trait AsByteSlice<T> {
     fn as_byte_slice(&self) -> Result<&[u8], Error>;
 }
 
-impl<T: ToByteSlice, U: AsRef<[T]>> AsByteSlice<T> for U {
+impl<T: ToByteSlice, U: AsRef<[T]> + ?Sized> AsByteSlice<T> for U {
     fn as_byte_slice(&self) -> Result<&[u8], Error> {
         ToByteSlice::to_byte_slice(self)
     }
@@ -370,7 +370,7 @@ pub trait AsMutByteSlice<T> {
     fn as_mut_byte_slice(&mut self) -> Result<&mut [u8], Error>;
 }
 
-impl<T: ToMutByteSlice, U: AsMut<[T]>> AsMutByteSlice<T> for U {
+impl<T: ToMutByteSlice, U: AsMut<[T]> + ?Sized> AsMutByteSlice<T> for U {
     fn as_mut_byte_slice(&mut self) -> Result<&mut [u8], Error> {
         ToMutByteSlice::to_mut_byte_slice(self)
     }
