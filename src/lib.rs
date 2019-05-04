@@ -31,7 +31,7 @@
 //!     assert_eq!(converted_slice, &[0x0201, 0x0403, 0x0605]);
 //! }
 //!
-//! let converted_back_slice = converted_slice.as_byte_slice().unwrap();
+//! let converted_back_slice = converted_slice.as_byte_slice();
 //! assert_eq!(converted_back_slice, &slice);
 //! # }
 //! ```
@@ -152,7 +152,7 @@ where
 ///
 /// # fn main() {
 /// let slice: [u16; 3] = [0x0102, 0x0304, 0x0506];
-/// let converted_slice = ToByteSlice::to_byte_slice(&slice).unwrap();
+/// let converted_slice = ToByteSlice::to_byte_slice(&slice);
 ///
 /// if cfg!(target_endian = "big") {
 ///     assert_eq!(converted_slice, &[1u8, 2u8, 3u8, 4u8, 5u8, 6u8]);
@@ -167,7 +167,7 @@ where
 {
     /// Convert from an immutable slice of a fundamental, built-in numeric type to an immutable
     /// byte slice
-    fn to_byte_slice<T: AsRef<[Self]> + ?Sized>(slice: &T) -> Result<&[u8], Error>;
+    fn to_byte_slice<T: AsRef<[Self]> + ?Sized>(slice: &T) -> &[u8];
 }
 
 /// Trait for converting from a mutable slice of a fundamental, built-in numeric type to a mutable
@@ -182,7 +182,7 @@ where
 ///
 /// # fn main() {
 /// let mut slice: [u16; 3] = [0x0102, 0x0304, 0x0506];
-/// let converted_slice = ToMutByteSlice::to_mut_byte_slice(&mut slice).unwrap();
+/// let converted_slice = ToMutByteSlice::to_mut_byte_slice(&mut slice);
 ///
 /// if cfg!(target_endian = "big") {
 ///     assert_eq!(converted_slice, &[1u8, 2u8, 3u8, 4u8, 5u8, 6u8]);
@@ -197,7 +197,7 @@ where
 {
     /// Convert from a mutable slice of a fundamental, built-in numeric type to a mutable byte
     /// slice
-    fn to_mut_byte_slice<T: AsMut<[Self]> + ?Sized>(slice: &mut T) -> Result<&mut [u8], Error>;
+    fn to_mut_byte_slice<T: AsMut<[Self]> + ?Sized>(slice: &mut T) -> &mut [u8];
 }
 
 macro_rules! impl_trait(
@@ -221,21 +221,21 @@ macro_rules! impl_trait(
         }
 
         unsafe impl ToByteSlice for $to {
-            fn to_byte_slice<T: AsRef<[$to]> + ?Sized>(slice: &T) -> Result<&[u8], Error> {
+            fn to_byte_slice<T: AsRef<[$to]> + ?Sized>(slice: &T) -> &[u8] {
                 let slice = slice.as_ref();
-                let len = check_constraints::<$to, u8>(slice)?;
+                let len = slice.len() * mem::size_of::<$to>();
                 unsafe {
-                    Ok(slice::from_raw_parts(slice.as_ptr() as *const u8, len))
+                    slice::from_raw_parts(slice.as_ptr() as *const u8, len)
                 }
             }
         }
 
         unsafe impl ToMutByteSlice for $to {
-            fn to_mut_byte_slice<T: AsMut<[$to]> + ?Sized>(slice: &mut T) -> Result<&mut [u8], Error> {
+            fn to_mut_byte_slice<T: AsMut<[$to]> + ?Sized>(slice: &mut T) -> &mut [u8] {
                 let slice = slice.as_mut();
-                let len = check_constraints::<$to, u8>(slice)?;
+                let len = slice.len() * mem::size_of::<$to>();
                 unsafe {
-                    Ok(slice::from_raw_parts_mut(slice.as_mut_ptr() as *mut u8, len))
+                    slice::from_raw_parts_mut(slice.as_mut_ptr() as *mut u8, len)
                 }
             }
         }
@@ -328,7 +328,7 @@ impl<U: AsMut<[u8]> + ?Sized> AsMutSliceOf for U {
 ///
 /// # fn main() {
 /// let slice: [u16; 3] = [0x0102, 0x0304, 0x0506];
-/// let converted_slice = slice.as_byte_slice().unwrap();
+/// let converted_slice = slice.as_byte_slice();
 ///
 /// if cfg!(target_endian = "big") {
 ///     assert_eq!(converted_slice, &[1u8, 2u8, 3u8, 4u8, 5u8, 6u8]);
@@ -338,11 +338,11 @@ impl<U: AsMut<[u8]> + ?Sized> AsMutSliceOf for U {
 /// # }
 /// ```
 pub trait AsByteSlice<T> {
-    fn as_byte_slice(&self) -> Result<&[u8], Error>;
+    fn as_byte_slice(&self) -> &[u8];
 }
 
 impl<T: ToByteSlice, U: AsRef<[T]> + ?Sized> AsByteSlice<T> for U {
-    fn as_byte_slice(&self) -> Result<&[u8], Error> {
+    fn as_byte_slice(&self) -> &[u8] {
         ToByteSlice::to_byte_slice(self)
     }
 }
@@ -357,7 +357,7 @@ impl<T: ToByteSlice, U: AsRef<[T]> + ?Sized> AsByteSlice<T> for U {
 ///
 /// # fn main() {
 /// let mut slice: [u16; 3] = [0x0102, 0x0304, 0x0506];
-/// let converted_slice = slice.as_mut_byte_slice().unwrap();
+/// let converted_slice = slice.as_mut_byte_slice();
 ///
 /// if cfg!(target_endian = "big") {
 ///     assert_eq!(converted_slice, &mut [1u8, 2u8, 3u8, 4u8, 5u8, 6u8]);
@@ -367,11 +367,11 @@ impl<T: ToByteSlice, U: AsRef<[T]> + ?Sized> AsByteSlice<T> for U {
 /// # }
 /// ```
 pub trait AsMutByteSlice<T> {
-    fn as_mut_byte_slice(&mut self) -> Result<&mut [u8], Error>;
+    fn as_mut_byte_slice(&mut self) -> &mut [u8];
 }
 
 impl<T: ToMutByteSlice, U: AsMut<[T]> + ?Sized> AsMutByteSlice<T> for U {
-    fn as_mut_byte_slice(&mut self) -> Result<&mut [u8], Error> {
+    fn as_mut_byte_slice(&mut self) -> &mut [u8] {
         ToMutByteSlice::to_mut_byte_slice(self)
     }
 }
@@ -387,14 +387,14 @@ mod tests {
         let output: &[u8] = input.as_slice_of::<u8>().unwrap();
         assert_eq!(&input, output);
 
-        let output2: &[u8] = input.as_byte_slice().unwrap();
+        let output2: &[u8] = input.as_byte_slice();
         assert_eq!(&input, output2);
     }
 
     #[test]
     fn u16() {
         let slice: [u16; 8] = [0, 1, 2, 3, 4, 5, 6, 7];
-        let bytes = slice.as_byte_slice().unwrap();
+        let bytes = slice.as_byte_slice();
 
         if cfg!(target_endian = "big") {
             assert_eq!(bytes, &[0, 0, 0, 1, 0, 2, 0, 3, 0, 4, 0, 5, 0, 6, 0, 7]);
@@ -416,7 +416,7 @@ mod tests {
     #[test]
     fn u32() {
         let slice: [u32; 4] = [0, 1, 2, 3];
-        let bytes = slice.as_byte_slice().unwrap();
+        let bytes = slice.as_byte_slice();
 
         if cfg!(target_endian = "big") {
             assert_eq!(bytes, &[0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 2, 0, 0, 0, 3]);
@@ -438,7 +438,7 @@ mod tests {
     #[test]
     fn u64() {
         let slice: [u64; 2] = [0, 1];
-        let bytes = slice.as_byte_slice().unwrap();
+        let bytes = slice.as_byte_slice();
 
         if cfg!(target_endian = "big") {
             assert_eq!(bytes, &[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1]);
@@ -460,7 +460,7 @@ mod tests {
     #[test]
     fn f32() {
         let slice: [f32; 4] = [2.0, 1.0, 0.5, 0.25];
-        let bytes = slice.as_byte_slice().unwrap();
+        let bytes = slice.as_byte_slice();
 
         if cfg!(target_endian = "big") {
             assert_eq!(
@@ -494,7 +494,7 @@ mod tests {
     #[test]
     fn f64() {
         let slice: [f64; 2] = [2.0, 0.5];
-        let bytes = slice.as_byte_slice().unwrap();
+        let bytes = slice.as_byte_slice();
 
         if cfg!(target_endian = "big") {
             assert_eq!(
@@ -529,7 +529,7 @@ mod tests {
     fn u16_mut() {
         let mut slice: [u16; 8] = [0, 1, 2, 3, 4, 5, 6, 7];
         let mut slice_2: [u16; 8] = [0, 1, 2, 3, 4, 5, 6, 7];
-        let bytes = slice_2.as_mut_byte_slice().unwrap();
+        let bytes = slice_2.as_mut_byte_slice();
 
         if cfg!(target_endian = "big") {
             assert_eq!(bytes, &[0, 0, 0, 1, 0, 2, 0, 3, 0, 4, 0, 5, 0, 6, 0, 7]);
@@ -551,7 +551,7 @@ mod tests {
     #[test]
     fn u16_vec() {
         let vec: Vec<u16> = vec![0, 1, 2, 3, 4, 5, 6, 7];
-        let bytes = vec.as_byte_slice().unwrap();
+        let bytes = vec.as_byte_slice();
 
         if cfg!(target_endian = "big") {
             assert_eq!(bytes, &[0, 0, 0, 1, 0, 2, 0, 3, 0, 4, 0, 5, 0, 6, 0, 7]);
@@ -574,7 +574,7 @@ mod tests {
     fn u16_mut_vec() {
         let mut vec: Vec<u16> = vec![0, 1, 2, 3, 4, 5, 6, 7];
         let mut vec_clone = vec.clone();
-        let bytes = vec_clone.as_mut_byte_slice().unwrap();
+        let bytes = vec_clone.as_mut_byte_slice();
 
         if cfg!(target_endian = "big") {
             assert_eq!(bytes, &[0, 0, 0, 1, 0, 2, 0, 3, 0, 4, 0, 5, 0, 6, 0, 7]);
@@ -596,7 +596,7 @@ mod tests {
     #[test]
     fn u16_box_slice() {
         let vec: Box<[u16]> = vec![0, 1, 2, 3, 4, 5, 6, 7].into_boxed_slice();
-        let bytes = vec.as_byte_slice().unwrap();
+        let bytes = vec.as_byte_slice();
 
         if cfg!(target_endian = "big") {
             assert_eq!(bytes, &[0, 0, 0, 1, 0, 2, 0, 3, 0, 4, 0, 5, 0, 6, 0, 7]);
@@ -619,7 +619,7 @@ mod tests {
     fn u16_mut_box_slice() {
         let mut vec: Box<[u16]> = vec![0, 1, 2, 3, 4, 5, 6, 7].into_boxed_slice();
         let mut vec_clone: Box<[u16]> = vec![0, 1, 2, 3, 4, 5, 6, 7].into_boxed_slice();
-        let bytes = vec_clone.as_mut_byte_slice().unwrap();
+        let bytes = vec_clone.as_mut_byte_slice();
 
         if cfg!(target_endian = "big") {
             assert_eq!(bytes, &[0, 0, 0, 1, 0, 2, 0, 3, 0, 4, 0, 5, 0, 6, 0, 7]);
