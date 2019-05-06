@@ -5,6 +5,11 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html),
 specifically the [variant used by Rust](http://doc.crates.io/manifest.html#the-version-field).
 
+## [0.3.0] - 2019-05-06
+### Changed
+- `AsByteSlice::as_byte_slice` and `ToByteSlice::to_byte_slice` were changed to always return `&[u8]` instead of `Result<&[u8], Error>`.
+- `AsMutByteSlice::as_mut_byte_slice` and `ToMutByteSlice::to_mut_byte_slice` were changed to always return `&mut [u8]` instead of `Result<&mut [u8], Error>`.
+
 ## [0.2.0] - 2018-06-01
 ### Changed
 - Major refactoring of how the traits work. It is now possible to work
