@@ -64,7 +64,7 @@ use std::slice;
 use std::error::Error as StdError;
 
 /// Possible errors during slice conversion.
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub enum Error {
     /// The input slice is not properly aligned for the
     /// output data type. E.g. for an `u32` output slice
