@@ -6,9 +6,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 specifically the [variant used by Rust](http://doc.crates.io/manifest.html#the-version-field).
 
 ## [0.3.0] - 2019-05-06
+### Added
+- The `Error` type now implements `Clone`.
+
 ### Changed
 - `AsByteSlice::as_byte_slice` and `ToByteSlice::to_byte_slice` were changed to always return `&[u8]` instead of `Result<&[u8], Error>`.
 - `AsMutByteSlice::as_mut_byte_slice` and `ToMutByteSlice::to_mut_byte_slice` were changed to always return `&mut [u8]` instead of `Result<&mut [u8], Error>`.
+- The `Display` impl for `Error` now produces more detailed error messages.
+- The variants of the `Error` enum were renamed.
 
 ## [0.2.0] - 2018-06-01
 ### Changed
