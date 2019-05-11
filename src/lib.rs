@@ -251,6 +251,7 @@ macro_rules! impl_trait(
             fn from_byte_slice<T: AsRef<[u8]> + ?Sized>(slice: &T) -> Result<&[$to], Error> {
                 let slice = slice.as_ref();
                 let len = check_constraints::<$to>(slice)?;
+                #[allow(clippy::cast_ptr_alignment)]
                 unsafe {
                     Ok(slice::from_raw_parts(slice.as_ptr() as *const $to, len))
                 }
@@ -259,6 +260,7 @@ macro_rules! impl_trait(
             fn from_mut_byte_slice<T: AsMut<[u8]> + ?Sized>(slice: &mut T) -> Result<&mut [$to], Error> {
                 let slice = slice.as_mut();
                 let len = check_constraints::<$to>(slice)?;
+                #[allow(clippy::cast_ptr_alignment)]
                 unsafe {
                     Ok(slice::from_raw_parts_mut(slice.as_mut_ptr() as *mut $to, len))
                 }
