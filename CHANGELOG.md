@@ -5,7 +5,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html),
 specifically the [variant used by Rust](http://doc.crates.io/manifest.html#the-version-field).
 
-## [0.3.0] - 2019-05-06
+## [0.3.0] - 2019-05-11
 ### Added
 - The `Error` type now implements `Clone`.
 
