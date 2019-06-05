@@ -71,21 +71,24 @@ pub enum Error {
     /// the memory must be 4-byte aligned.
     AlignmentMismatch {
         dst_type: &'static str,
-        dst_minimum_alignment: usize
+        dst_minimum_alignment: usize,
     },
     /// A non-integer number of values from the output
     /// type would be in the output slice.
     LengthMismatch {
         dst_type: &'static str,
         src_slice_size: usize,
-        dst_type_size: usize
-    }
+        dst_type_size: usize,
+    },
 }
 
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
         match self {
-            Error::AlignmentMismatch { dst_type, dst_minimum_alignment } => {
+            Error::AlignmentMismatch {
+                dst_type,
+                dst_minimum_alignment,
+            } => {
                 write!(
                     f,
                     "cannot cast a &[u8] into a &[{}]: the slice's address is not divisible by the minimum alignment ({}) of {}",
@@ -93,8 +96,12 @@ impl fmt::Display for Error {
                     dst_minimum_alignment,
                     dst_type
                 )?;
-            },
-            Error::LengthMismatch { dst_type, src_slice_size, dst_type_size } => {
+            }
+            Error::LengthMismatch {
+                dst_type,
+                src_slice_size,
+                dst_type_size,
+            } => {
                 write!(
                     f,
                     "cannot cast a &[u8] into a &[{}]: the size ({}) of the slice is not divisible by the size ({}) of {}",
@@ -125,7 +132,10 @@ impl StdError for Error {
     }
 }
 
-fn check_constraints<U>(data: &[u8]) -> Result<usize, Error> where U: TypeName {
+fn check_constraints<U>(data: &[u8]) -> Result<usize, Error>
+where
+    U: TypeName,
+{
     if data.is_empty() {
         return Ok(0);
     }
@@ -135,7 +145,7 @@ fn check_constraints<U>(data: &[u8]) -> Result<usize, Error> where U: TypeName {
     if (data.as_ptr() as usize) % alignment != 0 {
         let err = Error::AlignmentMismatch {
             dst_type: U::TYPE_NAME,
-            dst_minimum_alignment: alignment
+            dst_minimum_alignment: alignment,
         };
         return Err(err);
     }
@@ -145,7 +155,7 @@ fn check_constraints<U>(data: &[u8]) -> Result<usize, Error> where U: TypeName {
         let err = Error::LengthMismatch {
             dst_type: U::TYPE_NAME,
             src_slice_size: data.len(),
-            dst_type_size: size_out
+            dst_type_size: size_out,
         };
         return Err(err);
     }
@@ -487,7 +497,10 @@ mod tests {
                 dst_type_size: 2
             })
         );
-        let error = (&bytes[0..15]).as_slice_of::<u16>().unwrap_err().to_string();
+        let error = (&bytes[0..15])
+            .as_slice_of::<u16>()
+            .unwrap_err()
+            .to_string();
         assert_eq!(
             error,
             "cannot cast a &[u8] into a &[u16]: the size (15) of the slice is not divisible by the size (2) of u16"
