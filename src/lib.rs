@@ -126,6 +126,10 @@ impl StdError for Error {
 }
 
 fn check_constraints<U>(data: &[u8]) -> Result<usize, Error> where U: TypeName {
+    if data.is_empty() {
+        return Ok(0);
+    }
+
     let alignment = mem::align_of::<U>();
 
     if (data.as_ptr() as usize) % alignment != 0 {
@@ -251,18 +255,32 @@ macro_rules! impl_trait(
             fn from_byte_slice<T: AsRef<[u8]> + ?Sized>(slice: &T) -> Result<&[$to], Error> {
                 let slice = slice.as_ref();
                 let len = check_constraints::<$to>(slice)?;
-                #[allow(clippy::cast_ptr_alignment)]
-                unsafe {
-                    Ok(slice::from_raw_parts(slice.as_ptr() as *const $to, len))
+
+                // Need to handle the empty case separately as even an empty slices
+                // must have a correctly aligned data pointer
+                if len == 0 {
+                    Ok(&[])
+                } else {
+                    #[allow(clippy::cast_ptr_alignment)]
+                    unsafe {
+                        Ok(slice::from_raw_parts(slice.as_ptr() as *const $to, len))
+                    }
                 }
             }
 
             fn from_mut_byte_slice<T: AsMut<[u8]> + ?Sized>(slice: &mut T) -> Result<&mut [$to], Error> {
                 let slice = slice.as_mut();
                 let len = check_constraints::<$to>(slice)?;
-                #[allow(clippy::cast_ptr_alignment)]
-                unsafe {
-                    Ok(slice::from_raw_parts_mut(slice.as_mut_ptr() as *mut $to, len))
+
+                // Need to handle the empty case separately as even an empty slices
+                // must have a correctly aligned data pointer
+                if len == 0 {
+                    Ok(&mut [])
+                } else {
+                    #[allow(clippy::cast_ptr_alignment)]
+                    unsafe {
+                        Ok(slice::from_raw_parts_mut(slice.as_mut_ptr() as *mut $to, len))
+                    }
                 }
             }
         }
@@ -763,5 +781,21 @@ mod tests {
             })
         );
         assert_eq!(bytes.as_mut_slice_of::<u16>(), Ok(vec.as_mut()));
+    }
+
+    #[test]
+    fn u16_empty_to_byte_slice() {
+        let slice: [u16; 0] = [];
+        let bytes = slice.as_byte_slice();
+
+        assert_eq!(bytes, &[]);
+    }
+
+    #[test]
+    fn u16_empty_from_byte_slice() {
+        let bytes: [u8; 0] = [];
+        let slice = bytes.as_slice_of::<u16>().unwrap();
+
+        assert_eq!(slice, &[]);
     }
 }
