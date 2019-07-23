@@ -57,11 +57,12 @@
 //! # }
 //! ```
 
-use std::fmt;
-use std::mem;
-use std::slice;
+#![cfg_attr(not(feature = "std"), no_std)]
 
-use std::error::Error as StdError;
+#[cfg(feature = "std")]
+use std::{fmt, mem, slice, error::Error as StdError};
+#[cfg(not(feature = "std"))]
+use core::{fmt, mem, slice};
 
 /// Possible errors during slice conversion.
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -121,6 +122,7 @@ trait TypeName {
     const TYPE_NAME: &'static str;
 }
 
+#[cfg(feature = "std")]
 impl StdError for Error {
     fn description(&self) -> &str {
         use self::Error::*;
