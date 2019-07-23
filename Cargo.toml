@@ -3,6 +3,7 @@ name = "byte-slice-cast"
 version = "0.3.1"
 authors = ["Sebastian Dröge <sebastian@centricular.com>"]
 description = "Safely cast bytes slices from/to slices of built-in fundamental numeric types"
+keywords = ["no_std"]
 repository = "https://github.com/sdroege/bytes-num-slice-cast"
 license = "MIT"
 readme = "README.md"
@@ -15,6 +16,10 @@ include = [
 ]
 
 [dependencies]
+
+[features]
+default = ["std"]
+std = []
 
 [badges]
 travis-ci = { repository = "sdroege/byte-slice-cast", branch = "master" }
