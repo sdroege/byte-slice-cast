@@ -5,6 +5,11 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html),
 specifically the [variant used by Rust](http://doc.crates.io/manifest.html#the-version-field).
 
+## [0.3.2] - 2019-07-26
+### Changed
+- Add `no_std` support
+- Migrate to 2018 edition
+
 ## [0.3.1] - 2019-06-05
 ### Fixed
 - Casting of empty slices works correctly now instead of failing with an
@@ -34,7 +39,8 @@ specifically the [variant used by Rust](http://doc.crates.io/manifest.html#the-v
 ## [0.1.0] - 2017-08-14
 - Initial release of the `byte-slice-cast` crate.
 
-[Unreleased]: https://github.com/sdroege/byte-slice-cast/compare/0.3.1...HEAD
+[Unreleased]: https://github.com/sdroege/byte-slice-cast/compare/0.3.2...HEAD
+[0.3.1]: https://github.com/sdroege/byte-slice-cast/compare/0.3.1...0.3.2
 [0.3.1]: https://github.com/sdroege/byte-slice-cast/compare/0.3.0...0.3.1
 [0.3.0]: https://github.com/sdroege/byte-slice-cast/compare/0.2.0...0.3.0
 [0.2.0]: https://github.com/sdroege/byte-slice-cast/compare/0.1.0...0.2.0
