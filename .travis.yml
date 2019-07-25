@@ -5,6 +5,9 @@ rust:
   - stable
   - beta
   - nightly
+script:
+  - cargo test
+  - cargo test --no-default-features
 matrix:
   allow_failures:
     - rust: nightly
