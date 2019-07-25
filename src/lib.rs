@@ -59,10 +59,9 @@
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
-#[cfg(feature = "std")]
-use std::{fmt, mem, slice, error::Error as StdError};
-#[cfg(not(feature = "std"))]
 use core::{fmt, mem, slice};
+#[cfg(feature = "std")]
+use std::error::Error as StdError;
 
 /// Possible errors during slice conversion.
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -191,10 +190,10 @@ where
 {
     /// Convert from an immutable byte slice to a immutable slice of a fundamental, built-in
     /// numeric type
-    fn from_byte_slice<T: AsRef<[u8]> + ?Sized>(&T) -> Result<&[Self], Error>;
+    fn from_byte_slice<T: AsRef<[u8]> + ?Sized>(_: &T) -> Result<&[Self], Error>;
     /// Convert from an mutable byte slice to a mutable slice of a fundamental, built-in numeric
     /// type
-    fn from_mut_byte_slice<T: AsMut<[u8]> + ?Sized>(&mut T) -> Result<&mut [Self], Error>;
+    fn from_mut_byte_slice<T: AsMut<[u8]> + ?Sized>(_: &mut T) -> Result<&mut [Self], Error>;
 }
 
 /// Trait for converting from an immutable slice of a fundamental, built-in numeric type to an
@@ -468,6 +467,7 @@ mod tests {
         assert_eq!(&input, output2);
     }
 
+    #[cfg(feature = "std")]
     #[test]
     fn u16() {
         let slice: [u16; 8] = [0, 1, 2, 3, 4, 5, 6, 7];
@@ -680,6 +680,7 @@ mod tests {
         assert_eq!(bytes.as_mut_slice_of::<u16>(), Ok(slice.as_mut()));
     }
 
+    #[cfg(feature = "std")]
     #[test]
     fn u16_vec() {
         let vec: Vec<u16> = vec![0, 1, 2, 3, 4, 5, 6, 7];
@@ -709,6 +710,7 @@ mod tests {
         assert_eq!(bytes.as_slice_of::<u16>(), Ok(vec.as_ref()));
     }
 
+    #[cfg(feature = "std")]
     #[test]
     fn u16_mut_vec() {
         let mut vec: Vec<u16> = vec![0, 1, 2, 3, 4, 5, 6, 7];
@@ -739,6 +741,7 @@ mod tests {
         assert_eq!(bytes.as_mut_slice_of::<u16>(), Ok(vec.as_mut()));
     }
 
+    #[cfg(feature = "std")]
     #[test]
     fn u16_box_slice() {
         let vec: Box<[u16]> = vec![0, 1, 2, 3, 4, 5, 6, 7].into_boxed_slice();
@@ -768,6 +771,7 @@ mod tests {
         assert_eq!(bytes.as_slice_of::<u16>(), Ok(vec.as_ref()));
     }
 
+    #[cfg(feature = "std")]
     #[test]
     fn u16_mut_box_slice() {
         let mut vec: Box<[u16]> = vec![0, 1, 2, 3, 4, 5, 6, 7].into_boxed_slice();
