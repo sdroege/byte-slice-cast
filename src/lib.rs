@@ -190,10 +190,10 @@ where
 {
     /// Convert from an immutable byte slice to a immutable slice of a fundamental, built-in
     /// numeric type
-    fn from_byte_slice<T: AsRef<[u8]> + ?Sized>(_: &T) -> Result<&[Self], Error>;
+    fn from_byte_slice<T: AsRef<[u8]> + ?Sized>(slice: &T) -> Result<&[Self], Error>;
     /// Convert from an mutable byte slice to a mutable slice of a fundamental, built-in numeric
     /// type
-    fn from_mut_byte_slice<T: AsMut<[u8]> + ?Sized>(_: &mut T) -> Result<&mut [Self], Error>;
+    fn from_mut_byte_slice<T: AsMut<[u8]> + ?Sized>(slice: &mut T) -> Result<&mut [Self], Error>;
 }
 
 /// Trait for converting from an immutable slice of a fundamental, built-in numeric type to an
@@ -467,7 +467,6 @@ mod tests {
         assert_eq!(&input, output2);
     }
 
-    #[cfg(feature = "std")]
     #[test]
     fn u16() {
         let slice: [u16; 8] = [0, 1, 2, 3, 4, 5, 6, 7];
@@ -486,11 +485,6 @@ mod tests {
                 dst_minimum_alignment: mem::align_of::<u16>()
             })
         );
-        let error = (&bytes[1..]).as_slice_of::<u16>().unwrap_err().to_string();
-        assert_eq!(
-            error,
-            "cannot cast a &[u8] into a &[u16]: the slice's address is not divisible by the minimum alignment (2) of u16",
-        );
         assert_eq!(
             (&bytes[0..15]).as_slice_of::<u16>(),
             Err(Error::LengthMismatch {
@@ -498,6 +492,20 @@ mod tests {
                 src_slice_size: 15,
                 dst_type_size: 2
             })
+        );
+        assert_eq!(bytes.as_slice_of::<u16>(), Ok(slice.as_ref()));
+    }
+
+    #[cfg(feature = "std")]
+    #[test]
+    fn u16_error_string() {
+        let slice: [u16; 8] = [0, 1, 2, 3, 4, 5, 6, 7];
+        let bytes = slice.as_byte_slice();
+
+        let error = (&bytes[1..]).as_slice_of::<u16>().unwrap_err().to_string();
+        assert_eq!(
+            error,
+            "cannot cast a &[u8] into a &[u16]: the slice's address is not divisible by the minimum alignment (2) of u16",
         );
         let error = (&bytes[0..15])
             .as_slice_of::<u16>()
@@ -507,7 +515,6 @@ mod tests {
             error,
             "cannot cast a &[u8] into a &[u16]: the size (15) of the slice is not divisible by the size (2) of u16"
         );
-        assert_eq!(bytes.as_slice_of::<u16>(), Ok(slice.as_ref()));
     }
 
     #[test]
