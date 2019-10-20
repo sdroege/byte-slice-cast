@@ -330,6 +330,7 @@ impl_trait!(i64);
 impl_trait!(i128);
 impl_trait!(f32);
 impl_trait!(f64);
+impl_trait!(usize);
 
 /// Trait for converting from a byte slice to a slice of a fundamental, built-in numeric type.
 ///
@@ -573,6 +574,51 @@ mod tests {
             })
         );
         assert_eq!(bytes.as_slice_of::<u64>(), Ok(slice.as_ref()));
+    }
+
+    #[test]
+    fn usize() {
+        let slice: [usize; 2] = [0, 1];
+        let bytes = slice.as_byte_slice();
+
+        if cfg!(target_endian = "big") {
+            if cfg!(target_pointer_width = "16") {
+                assert_eq!(bytes, &[0, 0, 0, 1]);
+            } else if cfg!(target_pointer_width = "32") {
+                assert_eq!(bytes, &[0, 0, 0, 0, 0, 0, 0, 1]);
+            } else if cfg!(target_pointer_width = "64") {
+                assert_eq!(bytes, &[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1]);
+            } else {
+                panic!("Unhandled target_endian/target_pointer_width configuration");
+            }
+        } else {
+            if cfg!(target_pointer_width = "16") {
+                assert_eq!(bytes, &[0, 0, 1, 0]);
+            } else if cfg!(target_pointer_width = "32") {
+                assert_eq!(bytes, &[0, 0, 0, 0, 1, 0, 0, 0]);
+            } else if cfg!(target_pointer_width = "64") {
+                assert_eq!(bytes, &[0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0]);
+            } else {
+                panic!("Unhandled target_endian/target_pointer_width configuration");
+            }
+        }
+
+        assert_eq!(
+            (&bytes[1..]).as_slice_of::<usize>(),
+            Err(Error::AlignmentMismatch {
+                dst_type: "usize",
+                dst_minimum_alignment: mem::align_of::<usize>()
+            })
+        );
+        assert_eq!(
+            (&bytes[0..15]).as_slice_of::<usize>(),
+            Err(Error::LengthMismatch {
+                dst_type: "usize",
+                src_slice_size: 15,
+                dst_type_size: mem::size_of::<usize>()
+            })
+        );
+        assert_eq!(bytes.as_slice_of::<usize>(), Ok(slice.as_ref()));
     }
 
     #[test]
