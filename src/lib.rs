@@ -331,6 +331,7 @@ impl_trait!(i128);
 impl_trait!(f32);
 impl_trait!(f64);
 impl_trait!(usize);
+impl_trait!(isize);
 
 /// Trait for converting from a byte slice to a slice of a fundamental, built-in numeric type.
 ///
