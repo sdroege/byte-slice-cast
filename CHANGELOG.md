@@ -5,6 +5,10 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html),
 specifically the [variant used by Rust](http://doc.crates.io/manifest.html#the-version-field).
 
+## [0.3.3] - 2019-11-02
+### Added
+- Support for `usize` and `isize`
+
 ## [0.3.2] - 2019-07-26
 ### Changed
 - Add `no_std` support
