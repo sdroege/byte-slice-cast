@@ -20,7 +20,8 @@ edition = "2018"
 
 [features]
 default = ["std"]
-std = []
+std = ["alloc"]
+alloc = []
 
 [badges]
 travis-ci = { repository = "sdroege/byte-slice-cast", branch = "master" }
