@@ -933,10 +933,10 @@ mod tests {
             })
         );
         assert_eq!(
-            (&bytes[0..15]).as_slice_of::<usize>(),
+            (&bytes[0..3]).as_slice_of::<usize>(),
             Err(Error::LengthMismatch {
                 dst_type: "usize",
-                src_slice_size: 15,
+                src_slice_size: 3,
                 dst_type_size: mem::size_of::<usize>()
             })
         );
