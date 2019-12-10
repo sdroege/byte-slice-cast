@@ -19,9 +19,10 @@
 //! # Example with slices
 //! ```
 //! # extern crate byte_slice_cast;
-//! use byte_slice_cast::*;
 //!
 //! # fn main() {
+//! use byte_slice_cast::*;
+//!
 //! let slice = [1u8, 2u8, 3u8, 4u8, 5u8, 6u8];
 //! let converted_slice = slice.as_slice_of::<u16>().unwrap();
 //!
@@ -39,9 +40,10 @@
 //! # Example with mutable slices
 //! ```
 //! # extern crate byte_slice_cast;
-//! use byte_slice_cast::*;
 //!
 //! # fn main() {
+//! use byte_slice_cast::*;
+//!
 //! let mut slice = [0u8; 4];
 //! {
 //!     let mut converted_slice = slice.as_mut_slice_of::<u32>().unwrap();
@@ -60,9 +62,10 @@
 //! # Example with `Vec`
 //! ```
 //! # extern crate byte_slice_cast;
-//! use byte_slice_cast::*;
 //!
 //! # fn main() {
+//! use byte_slice_cast::*;
+//!
 //! let vec = vec![1u8, 2u8, 3u8, 4u8, 5u8, 6u8];
 //! let converted_vec = vec.into_vec_of::<u16>().unwrap();
 //!
@@ -269,9 +272,10 @@ where
 /// # Example
 /// ```
 /// # extern crate byte_slice_cast;
-/// use byte_slice_cast::*;
 ///
 /// # fn main() {
+/// use byte_slice_cast::*;
+///
 /// let slice = [1u8, 2u8, 3u8, 4u8, 5u8, 6u8];
 /// let converted_slice = <u16 as FromByteSlice>::from_byte_slice(&slice).unwrap();
 ///
@@ -302,9 +306,10 @@ where
 /// # Example
 /// ```
 /// # extern crate byte_slice_cast;
-/// use byte_slice_cast::*;
 ///
 /// # fn main() {
+/// use byte_slice_cast::*;
+///
 /// let slice: [u16; 3] = [0x0102, 0x0304, 0x0506];
 /// let converted_slice = ToByteSlice::to_byte_slice(&slice);
 ///
@@ -332,9 +337,10 @@ where
 /// # Example
 /// ```
 /// # extern crate byte_slice_cast;
-/// use byte_slice_cast::*;
 ///
 /// # fn main() {
+/// use byte_slice_cast::*;
+///
 /// let mut slice: [u16; 3] = [0x0102, 0x0304, 0x0506];
 /// let converted_slice = ToMutByteSlice::to_mut_byte_slice(&mut slice);
 ///
@@ -361,9 +367,10 @@ where
 /// # Example
 /// ```
 /// # extern crate byte_slice_cast;
-/// use byte_slice_cast::*;
 ///
 /// # fn main() {
+/// use byte_slice_cast::*;
+///
 /// let vec = vec![1u8, 2u8, 3u8, 4u8, 5u8, 6u8];
 /// let converted_vec = <u16 as FromByteVec>::from_byte_vec(vec).unwrap();
 ///
@@ -489,9 +496,10 @@ macro_rules! impl_trait(
 /// # Example
 /// ```
 /// # extern crate byte_slice_cast;
-/// use byte_slice_cast::*;
 ///
 /// # fn main() {
+/// use byte_slice_cast::*;
+///
 /// let slice = [1u8, 2u8, 3u8, 4u8, 5u8, 6u8];
 /// let converted_slice = slice.as_slice_of::<u16>().unwrap();
 ///
@@ -520,9 +528,10 @@ impl<U: AsRef<[u8]> + ?Sized> AsSliceOf for U {
 /// # Example
 /// ```
 /// # extern crate byte_slice_cast;
-/// use byte_slice_cast::*;
 ///
 /// # fn main() {
+/// use byte_slice_cast::*;
+///
 /// let mut slice = [1u8, 2u8, 3u8, 4u8, 5u8, 6u8];
 /// let converted_slice = slice.as_mut_slice_of::<u16>().unwrap();
 ///
@@ -551,9 +560,10 @@ impl<U: AsMut<[u8]> + ?Sized> AsMutSliceOf for U {
 /// # Example
 /// ```
 /// # extern crate byte_slice_cast;
-/// use byte_slice_cast::*;
 ///
 /// # fn main() {
+/// use byte_slice_cast::*;
+///
 /// let slice: [u16; 3] = [0x0102, 0x0304, 0x0506];
 /// let converted_slice = slice.as_byte_slice();
 ///
@@ -580,9 +590,10 @@ impl<T: ToByteSlice, U: AsRef<[T]> + ?Sized> AsByteSlice<T> for U {
 /// # Example
 /// ```
 /// # extern crate byte_slice_cast;
-/// use byte_slice_cast::*;
 ///
 /// # fn main() {
+/// use byte_slice_cast::*;
+///
 /// let mut slice: [u16; 3] = [0x0102, 0x0304, 0x0506];
 /// let converted_slice = slice.as_mut_byte_slice();
 ///
@@ -609,9 +620,10 @@ impl<T: ToMutByteSlice, U: AsMut<[T]> + ?Sized> AsMutByteSlice<T> for U {
 /// # Example
 /// ```
 /// # extern crate byte_slice_cast;
-/// use byte_slice_cast::*;
 ///
 /// # fn main() {
+/// use byte_slice_cast::*;
+///
 /// let mut vec: Vec<u8> = vec![1u8, 2u8, 3u8, 4u8, 5u8, 6u8];
 /// let converted_vec = vec.into_vec_of::<u16>().unwrap();
 ///
@@ -640,9 +652,10 @@ impl IntoVecOf for Vec<u8> {
 /// # Example
 /// ```
 /// # extern crate byte_slice_cast;
-/// use byte_slice_cast::*;
 ///
 /// # fn main() {
+/// use byte_slice_cast::*;
+///
 /// let mut vec: Vec<u16> = vec![0x0102, 0x0304, 0x0506];
 /// let converted_vec = vec.into_byte_vec();
 ///
