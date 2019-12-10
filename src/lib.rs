@@ -2,6 +2,8 @@
 //
 // Licensed under the MIT license, see the LICENSE file or <http://opensource.org/licenses/MIT>
 
+#![cfg_attr(not(feature = "std"), no_std)]
+
 //! Safely cast bytes slices from/to slices of built-in fundamental numeric types.
 //!
 //! The provided traits here allow safe casting between byte slices and slices of fundamental
@@ -58,12 +60,12 @@
 //!
 //! # }
 //! ```
-//!
 //! # Example with `Vec`
 //! ```
 //! # extern crate byte_slice_cast;
 //!
 //! # fn main() {
+//! # #[cfg(feature = "alloc")] {
 //! use byte_slice_cast::*;
 //!
 //! let vec = vec![1u8, 2u8, 3u8, 4u8, 5u8, 6u8];
@@ -77,11 +79,9 @@
 //!
 //! let converted_back_vec = converted_vec.into_byte_vec();
 //! assert_eq!(&converted_back_vec[..], &[1u8, 2u8, 3u8, 4u8, 5u8, 6u8]);
-//!
+//! # }
 //! # }
 //! ```
-
-#![cfg_attr(not(feature = "std"), no_std)]
 
 #[cfg(feature = "alloc")]
 #[macro_use]
