@@ -16,7 +16,7 @@
 //! The content of the output slice will be bitwise equivalent to the input slice, as such extra
 //! care has to be taken with regard to endianness.
 //!
-//! # Example
+//! # Example with slices
 //! ```
 //! # extern crate byte_slice_cast;
 //! use byte_slice_cast::*;
@@ -53,6 +53,27 @@
 //! } else {
 //!     assert_eq!(&slice, &[0x78, 0x56, 0x34, 0x12]);
 //! }
+//!
+//! # }
+//! ```
+//!
+//! # Example with `Vec`
+//! ```
+//! # extern crate byte_slice_cast;
+//! use byte_slice_cast::*;
+//!
+//! # fn main() {
+//! let vec = vec![1u8, 2u8, 3u8, 4u8, 5u8, 6u8];
+//! let converted_vec = vec.into_vec_of::<u16>().unwrap();
+//!
+//! if cfg!(target_endian = "big") {
+//!     assert_eq!(&converted_vec[..], &[0x0102, 0x0304, 0x0506]);
+//! } else {
+//!     assert_eq!(&converted_vec[..], &[0x0201, 0x0403, 0x0605]);
+//! }
+//!
+//! let converted_back_vec = converted_vec.into_byte_vec();
+//! assert_eq!(&converted_back_vec[..], &[1u8, 2u8, 3u8, 4u8, 5u8, 6u8]);
 //!
 //! # }
 //! ```
