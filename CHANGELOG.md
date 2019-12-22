@@ -5,6 +5,13 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html),
 specifically the [variant used by Rust](http://doc.crates.io/manifest.html#the-version-field).
 
+## [0.3.5] - 2019-12-22
+### Changed
+- Improve documentation and examples
+
+### Fixed
+- Fix running of tests on 16/32 bit architectures
+
 ## [0.3.4] - 2019-11-11
 ### Added
 - Support for casting between `Vec<T>` and `Vec<u8>`
@@ -47,8 +54,11 @@ specifically the [variant used by Rust](http://doc.crates.io/manifest.html#the-v
 ## [0.1.0] - 2017-08-14
 - Initial release of the `byte-slice-cast` crate.
 
-[Unreleased]: https://github.com/sdroege/byte-slice-cast/compare/0.3.2...HEAD
-[0.3.1]: https://github.com/sdroege/byte-slice-cast/compare/0.3.1...0.3.2
+[Unreleased]: https://github.com/sdroege/byte-slice-cast/compare/0.3.5...HEAD
+[0.3.5]: https://github.com/sdroege/byte-slice-cast/compare/0.3.4...0.3.5
+[0.3.4]: https://github.com/sdroege/byte-slice-cast/compare/0.3.3...0.3.4
+[0.3.3]: https://github.com/sdroege/byte-slice-cast/compare/0.3.2...0.3.3
+[0.3.2]: https://github.com/sdroege/byte-slice-cast/compare/0.3.1...0.3.2
 [0.3.1]: https://github.com/sdroege/byte-slice-cast/compare/0.3.0...0.3.1
 [0.3.0]: https://github.com/sdroege/byte-slice-cast/compare/0.2.0...0.3.0
 [0.2.0]: https://github.com/sdroege/byte-slice-cast/compare/0.1.0...0.2.0
