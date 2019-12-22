@@ -21,20 +21,21 @@
 //! # Example with slices
 //! ```
 //! # extern crate byte_slice_cast;
-//!
 //! # fn main() {
 //! use byte_slice_cast::*;
 //!
-//! let slice = [1u8, 2u8, 3u8, 4u8, 5u8, 6u8];
-//! let converted_slice = slice.as_slice_of::<u16>().unwrap();
+//! let slice = [0x0102u16, 0x0304u16, 0x0506u16];
+//!
+//! let converted_slice = slice.as_byte_slice();
 //!
 //! if cfg!(target_endian = "big") {
-//!     assert_eq!(converted_slice, &[0x0102, 0x0304, 0x0506]);
+//!     assert_eq!(converted_slice, &[1, 2, 3, 4, 5, 6]);
 //! } else {
-//!     assert_eq!(converted_slice, &[0x0201, 0x0403, 0x0605]);
+//!     assert_eq!(converted_slice, &[2, 1, 4, 3, 6, 5]);
 //! }
 //!
-//! let converted_back_slice = converted_slice.as_byte_slice();
+//! let converted_back_slice = converted_slice.as_slice_of::<u16>().unwrap();
+//!
 //! assert_eq!(converted_back_slice, &slice);
 //! # }
 //! ```
@@ -42,43 +43,42 @@
 //! # Example with mutable slices
 //! ```
 //! # extern crate byte_slice_cast;
-//!
 //! # fn main() {
 //! use byte_slice_cast::*;
 //!
-//! let mut slice = [0u8; 4];
-//! {
-//!     let mut converted_slice = slice.as_mut_slice_of::<u32>().unwrap();
-//!     converted_slice[0] = 0x12345678;
-//! }
+//! let mut slice = [0u32; 1];
+//! let mut converted_slice = slice.as_mut_byte_slice();
+//! converted_slice.copy_from_slice(&[0x12, 0x34, 0x56, 0x78]);
+//!
+//! let mut converted_slice = converted_slice.as_mut_slice_of::<u16>().unwrap();
+//! converted_slice[0] = 0xffff;
 //!
 //! if cfg!(target_endian = "big") {
-//!     assert_eq!(&slice, &[0x12, 0x34, 0x56, 0x78]);
+//!     assert_eq!(&slice, &[0xffff5678]);
 //! } else {
-//!     assert_eq!(&slice, &[0x78, 0x56, 0x34, 0x12]);
+//!     assert_eq!(&slice, &[0x7856ffff]);
 //! }
 //!
 //! # }
 //! ```
-//! # Example with `Vec`
+//! # Example with `Vec<T>`
 //! ```
 //! # extern crate byte_slice_cast;
-//!
 //! # fn main() {
 //! # #[cfg(feature = "alloc")] {
 //! use byte_slice_cast::*;
 //!
-//! let vec = vec![1u8, 2u8, 3u8, 4u8, 5u8, 6u8];
-//! let converted_vec = vec.into_vec_of::<u16>().unwrap();
+//! let vec = vec![0x0102u16, 0x0304u16, 0x0506u16];
+//! let converted_vec = vec.into_byte_vec();
 //!
 //! if cfg!(target_endian = "big") {
-//!     assert_eq!(&converted_vec[..], &[0x0102, 0x0304, 0x0506]);
+//!     assert_eq!(converted_vec, &[1, 2, 3, 4, 5, 6]);
 //! } else {
-//!     assert_eq!(&converted_vec[..], &[0x0201, 0x0403, 0x0605]);
+//!     assert_eq!(converted_vec, &[2, 1, 4, 3, 6, 5]);
 //! }
 //!
-//! let converted_back_vec = converted_vec.into_byte_vec();
-//! assert_eq!(&converted_back_vec[..], &[1u8, 2u8, 3u8, 4u8, 5u8, 6u8]);
+//! let converted_back_vec = converted_vec.into_vec_of::<u16>().unwrap();
+//! assert_eq!(&converted_back_vec[..], &[0x0102u16, 0x0304u16, 0x0506u16]);
 //! # }
 //! # }
 //! ```
@@ -111,6 +111,9 @@ pub enum Error {
         src_slice_size: usize,
         dst_type_size: usize,
     },
+    /// When converting a `Vec<T>` it had a capacity that
+    /// allowed only for a non-integer number of values
+    /// from the output type.
     CapacityMismatch {
         dst_type: &'static str,
         src_vec_capacity: usize,
@@ -267,25 +270,10 @@ where
 
 /// Trait for converting from a byte slice to a slice of a fundamental, built-in numeric type.
 ///
-/// Usually using the `AsSliceOf` and `AsMutSliceOf` traits is more convenient.
+/// This trait is an implementation detail. Use the [`AsSliceOf`] and [`AsMutSliceOf`] traits.
 ///
-/// # Example
-/// ```
-/// # extern crate byte_slice_cast;
-///
-/// # fn main() {
-/// use byte_slice_cast::*;
-///
-/// let slice = [1u8, 2u8, 3u8, 4u8, 5u8, 6u8];
-/// let converted_slice = <u16 as FromByteSlice>::from_byte_slice(&slice).unwrap();
-///
-/// if cfg!(target_endian = "big") {
-///     assert_eq!(converted_slice, &[0x0102, 0x0304, 0x0506]);
-/// } else {
-///     assert_eq!(converted_slice, &[0x0201, 0x0403, 0x0605]);
-/// }
-/// # }
-/// ```
+/// [`AsSliceOf`]: trait.AsSliceOf.html
+/// [`AsMutSliceOf`]: trait.AsMutSliceOf.html
 pub unsafe trait FromByteSlice
 where
     Self: Sized,
@@ -301,25 +289,9 @@ where
 /// Trait for converting from an immutable slice of a fundamental, built-in numeric type to an
 /// immutable byte slice.
 ///
-/// Usually using the `AsByteSlice` trait is more convenient.
+/// This trait is an implementation detail. Use the [`AsByteSlice`] trait.
 ///
-/// # Example
-/// ```
-/// # extern crate byte_slice_cast;
-///
-/// # fn main() {
-/// use byte_slice_cast::*;
-///
-/// let slice: [u16; 3] = [0x0102, 0x0304, 0x0506];
-/// let converted_slice = ToByteSlice::to_byte_slice(&slice);
-///
-/// if cfg!(target_endian = "big") {
-///     assert_eq!(converted_slice, &[1u8, 2u8, 3u8, 4u8, 5u8, 6u8]);
-/// } else {
-///     assert_eq!(converted_slice, &[2u8, 1u8, 4u8, 3u8, 6u8, 5u8]);
-/// }
-/// # }
-/// ```
+/// [`AsByteSlice`]: trait.AsByteSlice.html
 pub unsafe trait ToByteSlice
 where
     Self: Sized,
@@ -332,25 +304,9 @@ where
 /// Trait for converting from a mutable slice of a fundamental, built-in numeric type to a mutable
 /// byte slice.
 ///
-/// Usually using the `AsMutByteSlice` trait is more convenient.
+/// This trait is an implementation detail. Use the [`AsMutByteSlice`] trait.
 ///
-/// # Example
-/// ```
-/// # extern crate byte_slice_cast;
-///
-/// # fn main() {
-/// use byte_slice_cast::*;
-///
-/// let mut slice: [u16; 3] = [0x0102, 0x0304, 0x0506];
-/// let converted_slice = ToMutByteSlice::to_mut_byte_slice(&mut slice);
-///
-/// if cfg!(target_endian = "big") {
-///     assert_eq!(converted_slice, &[1u8, 2u8, 3u8, 4u8, 5u8, 6u8]);
-/// } else {
-///     assert_eq!(converted_slice, &[2u8, 1u8, 4u8, 3u8, 6u8, 5u8]);
-/// }
-/// # }
-/// ```
+/// [`AsMutByteSlice`]: trait.AsMutByteSlice.html
 pub unsafe trait ToMutByteSlice
 where
     Self: Sized,
@@ -362,31 +318,15 @@ where
 
 /// Trait for converting from a byte `Vec<u8>` to a `Vec<T>` of a fundamental, built-in numeric type.
 ///
-/// Usually using the `IntoVecOf` trait is more convenient.
+/// This trait is an implementation detail. Use the [`IntoVecOf`] trait.
 ///
-/// # Example
-/// ```
-/// # extern crate byte_slice_cast;
-///
-/// # fn main() {
-/// use byte_slice_cast::*;
-///
-/// let vec = vec![1u8, 2u8, 3u8, 4u8, 5u8, 6u8];
-/// let converted_vec = <u16 as FromByteVec>::from_byte_vec(vec).unwrap();
-///
-/// if cfg!(target_endian = "big") {
-///     assert_eq!(converted_vec, &[0x0102, 0x0304, 0x0506]);
-/// } else {
-///     assert_eq!(converted_vec, &[0x0201, 0x0403, 0x0605]);
-/// }
-/// # }
-/// ```
+/// [`IntoVecOf`]: trait.IntoVecOf.html
 #[cfg(feature = "alloc")]
 pub unsafe trait FromByteVec
 where
     Self: Sized,
 {
-    /// Convert from a byte `Vec` to a `Vec` of a fundamental, built-in
+    /// Convert from a byte `Vec<u8>` to a `Vec<T>` of a fundamental, built-in
     /// numeric type
     fn from_byte_vec(vec: Vec<u8>) -> Result<Vec<Self>, Error>;
 }
@@ -491,12 +431,9 @@ macro_rules! impl_trait(
 
 /// Trait for converting from a byte slice to a slice of a fundamental, built-in numeric type.
 ///
-/// This trait is usually more convenient to use than `FromByteSlice`.
-///
 /// # Example
-/// ```
+/// ```no_run
 /// # extern crate byte_slice_cast;
-///
 /// # fn main() {
 /// use byte_slice_cast::*;
 ///
@@ -523,12 +460,9 @@ impl<U: AsRef<[u8]> + ?Sized> AsSliceOf for U {
 /// Trait for converting from a mutable byte slice to a mutable slice of a fundamental, built-in
 /// numeric type.
 ///
-/// This trait is usually more convenient to use than `FromByteSlice`.
-///
 /// # Example
-/// ```
+/// ```no_run
 /// # extern crate byte_slice_cast;
-///
 /// # fn main() {
 /// use byte_slice_cast::*;
 ///
@@ -555,12 +489,9 @@ impl<U: AsMut<[u8]> + ?Sized> AsMutSliceOf for U {
 /// Trait for converting from an immutable slice of a fundamental, built-in numeric type to an
 /// immutable byte slice.
 ///
-/// This trait is usually more convenient to use than `ToByteSlice`.
-///
 /// # Example
-/// ```
+/// ```no_run
 /// # extern crate byte_slice_cast;
-///
 /// # fn main() {
 /// use byte_slice_cast::*;
 ///
@@ -585,12 +516,11 @@ impl<T: ToByteSlice, U: AsRef<[T]> + ?Sized> AsByteSlice<T> for U {
 }
 
 /// Trait for converting from a mutable slice of a fundamental, built-in numeric type to a mutable
-/// byte slice. This trait is usually more convenient to use than `ToMutByteSlice`.
+/// byte slice.
 ///
 /// # Example
-/// ```
+/// ```no_run
 /// # extern crate byte_slice_cast;
-///
 /// # fn main() {
 /// use byte_slice_cast::*;
 ///
@@ -618,9 +548,8 @@ impl<T: ToMutByteSlice, U: AsMut<[T]> + ?Sized> AsMutByteSlice<T> for U {
 /// numeric type.
 ///
 /// # Example
-/// ```
+/// ```no_run
 /// # extern crate byte_slice_cast;
-///
 /// # fn main() {
 /// use byte_slice_cast::*;
 ///
@@ -650,9 +579,8 @@ impl IntoVecOf for Vec<u8> {
 /// byte `Vec<u8>`.
 ///
 /// # Example
-/// ```
+/// ```no_run
 /// # extern crate byte_slice_cast;
-///
 /// # fn main() {
 /// use byte_slice_cast::*;
 ///
