@@ -5,6 +5,18 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html),
 specifically the [variant used by Rust](http://doc.crates.io/manifest.html#the-version-field).
 
+## [1.0.0] - 2020-10-13
+### Removed
+- Support for casting between `Vec<T>` and `Vec<u8>`. This was actually
+  unsound as the alloc trait requires that memory is deallocated with exactly
+  the same alignment as it was allocated with.
+
+### Fixed
+- `usize` tests on 16/32 bit architectures.
+
+### Changed
+- Various documentation improvements.
+
 ## [0.3.5] - 2019-12-22
 ### Changed
 - Improve documentation and examples

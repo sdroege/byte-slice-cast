@@ -1,6 +1,6 @@
 [package]
 name = "byte-slice-cast"
-version = "0.3.5"
+version = "1.0.0"
 authors = ["Sebastian Dröge <sebastian@centricular.com>"]
 description = "Safely cast bytes slices from/to slices of built-in fundamental numeric types"
 keywords = ["no_std"]
