@@ -1,4 +1,4 @@
-# byte-slice-cast [![crates.io](https://img.shields.io/crates/v/byte-slice-cast.svg)](https://crates.io/crates/byte-slice-cast) [![Build Status](https://travis-ci.org/sdroege/byte-slice-cast.svg?branch=master)](https://travis-ci.org/sdroege/byte-slice-cast) [![docs.rs](https://docs.rs/byte-slice-cast/badge.svg)](https://docs.rs/byte-slice-cast)
+# byte-slice-cast [![crates.io](https://img.shields.io/crates/v/byte-slice-cast.svg)](https://crates.io/crates/byte-slice-cast) [![Actions Status](https://github.com/sdroege/byte-slice-cast/workflows/byte-slice-cast/badge.svg)](https://github.com/sdroege/byte-slice-cast/actions) [![docs.rs](https://docs.rs/byte-slice-cast/badge.svg)](https://docs.rs/byte-slice-cast)
 
 Safely cast between byte slices and slices of another built-in fundamental number type.
 
