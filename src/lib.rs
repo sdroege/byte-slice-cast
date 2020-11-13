@@ -549,6 +549,7 @@ mod tests {
     }
 
     #[test]
+    #[allow(clippy::collapsible_if)]
     fn usize() {
         let slice: [usize; 2] = [0, 1];
         let bytes = slice.as_byte_slice();
