@@ -424,6 +424,7 @@ impl_trait!(f32);
 impl_trait!(f64);
 impl_trait!(usize);
 impl_trait!(isize);
+impl_trait!(());
 
 #[cfg(test)]
 mod tests {
@@ -842,5 +843,13 @@ mod tests {
         let bytes: [u8; 0] = [];
         let slice = bytes.as_slice_of::<u16>().unwrap();
         assert_eq!(slice, &[]);
+    }
+
+    #[test]
+    fn unit() {
+        let slice: [(); 4] = [(), (), (), ()];
+        let bytes = slice.as_byte_slice();
+
+        assert_eq!(bytes, &[]);
     }
 }
