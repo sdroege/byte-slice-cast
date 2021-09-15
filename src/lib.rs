@@ -425,6 +425,22 @@ impl_trait!(f64);
 impl_trait!(usize);
 impl_trait!(isize);
 
+impl TypeName for () {
+    const TYPE_NAME: &'static str = "()";
+}
+
+unsafe impl ToByteSlice for () {
+    fn to_byte_slice<T: AsRef<[()]> + ?Sized>(_: &T) -> &[u8] {
+        &[]
+    }
+}
+
+unsafe impl ToMutByteSlice for () {
+    fn to_mut_byte_slice<T: AsMut<[()]> + ?Sized>(_: &mut T) -> &mut [u8] {
+        &mut []
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -842,5 +858,13 @@ mod tests {
         let bytes: [u8; 0] = [];
         let slice = bytes.as_slice_of::<u16>().unwrap();
         assert_eq!(slice, &[]);
+    }
+
+    #[test]
+    fn unit() {
+        let slice: [(); 4] = [(), (), (), ()];
+        let bytes = slice.as_byte_slice();
+
+        assert_eq!(bytes, &[]);
     }
 }
