@@ -430,18 +430,14 @@ impl TypeName for () {
 }
 
 unsafe impl ToByteSlice for () {
-    fn to_byte_slice<T: AsRef<[()]> + ?Sized>(slice: &T) -> &[u8] {
-        let slice = slice.as_ref();
-        let len = slice.len() * mem::size_of::<()>();
-        unsafe { slice::from_raw_parts(slice.as_ptr() as *const u8, len) }
+    fn to_byte_slice<T: AsRef<[()]> + ?Sized>(_: &T) -> &[u8] {
+        &[]
     }
 }
 
 unsafe impl ToMutByteSlice for () {
-    fn to_mut_byte_slice<T: AsMut<[()]> + ?Sized>(slice: &mut T) -> &mut [u8] {
-        let slice = slice.as_mut();
-        let len = slice.len() * mem::size_of::<()>();
-        unsafe { slice::from_raw_parts_mut(slice.as_mut_ptr() as *mut u8, len) }
+    fn to_mut_byte_slice<T: AsMut<[()]> + ?Sized>(_: &mut T) -> &mut [u8] {
+        &mut []
     }
 }
 
