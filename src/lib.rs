@@ -247,6 +247,68 @@ macro_rules! impl_trait(
     };
 );
 
+macro_rules! impl_trait_array (
+    ($to:ty) => {
+        impl<const N: usize> TypeName for [$to; N] {
+            const TYPE_NAME: &'static str = stringify!([$to; N]);
+        }
+
+        unsafe impl<const N: usize> FromByteSlice for [$to; N] {
+            fn from_byte_slice<T: AsRef<[u8]> + ?Sized>(slice: &T) -> Result<&[[$to; N]], Error> {
+                let slice = slice.as_ref();
+                let len = check_constraints::<[$to; N]>(slice)?;
+
+                // Need to handle the empty case separately as even an empty slices
+                // must have a correctly aligned data pointer
+                if len == 0 {
+                    Ok(&[])
+                } else {
+                    #[allow(clippy::cast_ptr_alignment)]
+                    unsafe {
+                        Ok(slice::from_raw_parts(slice.as_ptr() as *const [$to; N], len))
+                    }
+                }
+            }
+
+            fn from_mut_byte_slice<T: AsMut<[u8]> + ?Sized>(slice: &mut T) -> Result<&mut [[$to; N]], Error> {
+                let slice = slice.as_mut();
+                let len = check_constraints::<[$to; N]>(slice)?;
+
+                // Need to handle the empty case separately as even an empty slices
+                // must have a correctly aligned data pointer
+                if len == 0 {
+                    Ok(&mut [])
+                } else {
+                    #[allow(clippy::cast_ptr_alignment)]
+                    unsafe {
+                        Ok(slice::from_raw_parts_mut(slice.as_mut_ptr() as *mut [$to; N], len))
+                    }
+                }
+            }
+        }
+
+        unsafe impl<const N: usize> ToByteSlice for [$to; N] {
+            fn to_byte_slice<T: AsRef<[[$to; N]]> + ?Sized>(slice: &T) -> &[u8] {
+                let slice = slice.as_ref();
+                let len = slice.len() * mem::size_of::<[$to; N]>();
+                unsafe {
+                    slice::from_raw_parts(slice.as_ptr() as *const u8, len)
+                }
+            }
+        }
+
+        unsafe impl<const N: usize> ToMutByteSlice for [$to; N] {
+            fn to_mut_byte_slice<T: AsMut<[[$to; N]]> + ?Sized>(slice: &mut T) -> &mut [u8] {
+                let slice = slice.as_mut();
+                let len = slice.len() * mem::size_of::<[$to; N]>();
+                unsafe {
+                    slice::from_raw_parts_mut(slice.as_mut_ptr() as *mut u8, len)
+                }
+            }
+        }
+    };
+);
+
 /// Trait for converting from a byte slice to a slice of a fundamental, built-in numeric type.
 ///
 /// This trait is an implementation detail. Use the [`AsSliceOf`] and [`AsMutSliceOf`] traits.
@@ -424,6 +486,21 @@ impl_trait!(f32);
 impl_trait!(f64);
 impl_trait!(usize);
 impl_trait!(isize);
+
+impl_trait_array!(u8);
+impl_trait_array!(u16);
+impl_trait_array!(u32);
+impl_trait_array!(u64);
+impl_trait_array!(u128);
+impl_trait_array!(i8);
+impl_trait_array!(i16);
+impl_trait_array!(i32);
+impl_trait_array!(i64);
+impl_trait_array!(i128);
+impl_trait_array!(f32);
+impl_trait_array!(f64);
+impl_trait_array!(usize);
+impl_trait_array!(isize);
 
 impl TypeName for () {
     const TYPE_NAME: &'static str = "()";
@@ -866,5 +943,48 @@ mod tests {
         let bytes = slice.as_byte_slice();
 
         assert_eq!(bytes, &[]);
+    }
+
+    #[test]
+    fn u8_array() {
+        let input: &[[u8; 3]] = &[[0, 1, 2], [3, 4, 5], [6, 7, 8], [9, 10, 11], [12, 13, 14]][..];
+
+        let bytes: &[u8] = input.as_byte_slice();
+        assert_eq!(bytes, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]);
+
+        let output = bytes.as_slice_of::<[u8; 3]>().unwrap();
+
+        assert_eq!(output, input);
+    }
+
+    #[test]
+    fn u16_array() {
+        let input: &[[u16; 3]] = &[[0, 1, 2], [3, 4, 5]][..];
+
+        let bytes: &[u8] = input.as_byte_slice();
+        if cfg!(target_endian = "big") {
+            assert_eq!(bytes, [0, 0, 0, 1, 0, 2, 0, 3, 0, 4, 0, 5]);
+        } else {
+            assert_eq!(bytes, [0, 0, 1, 0, 2, 0, 3, 0, 4, 0, 5, 0]);
+        };
+
+        assert_eq!(
+            (&bytes[1..]).as_slice_of::<[u16; 3]>(),
+            Err(Error::AlignmentMismatch {
+                dst_type: "[u16 ; N]",
+                dst_minimum_alignment: mem::align_of::<[u16; 3]>()
+            })
+        );
+        assert_eq!(
+            (&bytes[0..4]).as_slice_of::<[u16; 3]>(),
+            Err(Error::LengthMismatch {
+                dst_type: "[u16 ; N]",
+                src_slice_size: 4,
+                dst_type_size: 6
+            })
+        );
+
+        let output = bytes.as_slice_of::<[u16; 3]>().unwrap();
+        assert_eq!(output, input);
     }
 }
