@@ -5,6 +5,10 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html),
 specifically the [variant used by Rust](http://doc.crates.io/manifest.html#the-version-field).
 
+## [1.2.0] - 2021-10-19
+### Added
+- Trait impls for converting between `&[[T; N]]` and `&[u8]` for specific `T`.
+
 ## [1.1.0] - 2021-09-16
 ### Added
 - `ToByteSlice` and `ToMutByteSlice` impl for `&[()]`. This always produces an
@@ -71,7 +75,10 @@ specifically the [variant used by Rust](http://doc.crates.io/manifest.html#the-v
 ## [0.1.0] - 2017-08-14
 - Initial release of the `byte-slice-cast` crate.
 
-[Unreleased]: https://github.com/sdroege/byte-slice-cast/compare/0.3.5...HEAD
+[Unreleased]: https://github.com/sdroege/byte-slice-cast/compare/1.2.0...HEAD
+[1.2.0]: https://github.com/sdroege/byte-slice-cast/compare/1.1.0...1.2.0
+[1.1.0]: https://github.com/sdroege/byte-slice-cast/compare/1.0.0...1.1.0
+[1.0.0]: https://github.com/sdroege/byte-slice-cast/compare/0.3.5...1.0.0
 [0.3.5]: https://github.com/sdroege/byte-slice-cast/compare/0.3.4...0.3.5
 [0.3.4]: https://github.com/sdroege/byte-slice-cast/compare/0.3.3...0.3.4
 [0.3.3]: https://github.com/sdroege/byte-slice-cast/compare/0.3.2...0.3.3
