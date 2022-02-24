@@ -192,6 +192,7 @@ macro_rules! impl_trait(
         }
 
         unsafe impl FromByteSlice for $to {
+            #[inline]
             fn from_byte_slice<T: AsRef<[u8]> + ?Sized>(slice: &T) -> Result<&[$to], Error> {
                 let slice = slice.as_ref();
                 let len = check_constraints::<$to>(slice)?;
@@ -208,6 +209,7 @@ macro_rules! impl_trait(
                 }
             }
 
+            #[inline]
             fn from_mut_byte_slice<T: AsMut<[u8]> + ?Sized>(slice: &mut T) -> Result<&mut [$to], Error> {
                 let slice = slice.as_mut();
                 let len = check_constraints::<$to>(slice)?;
@@ -226,6 +228,7 @@ macro_rules! impl_trait(
         }
 
         unsafe impl ToByteSlice for $to {
+            #[inline]
             fn to_byte_slice<T: AsRef<[$to]> + ?Sized>(slice: &T) -> &[u8] {
                 let slice = slice.as_ref();
                 let len = slice.len() * mem::size_of::<$to>();
@@ -236,6 +239,7 @@ macro_rules! impl_trait(
         }
 
         unsafe impl ToMutByteSlice for $to {
+            #[inline]
             fn to_mut_byte_slice<T: AsMut<[$to]> + ?Sized>(slice: &mut T) -> &mut [u8] {
                 let slice = slice.as_mut();
                 let len = slice.len() * mem::size_of::<$to>();
@@ -254,6 +258,7 @@ macro_rules! impl_trait_array (
         }
 
         unsafe impl<const N: usize> FromByteSlice for [$to; N] {
+            #[inline]
             fn from_byte_slice<T: AsRef<[u8]> + ?Sized>(slice: &T) -> Result<&[[$to; N]], Error> {
                 let slice = slice.as_ref();
                 let len = check_constraints::<[$to; N]>(slice)?;
@@ -270,6 +275,7 @@ macro_rules! impl_trait_array (
                 }
             }
 
+            #[inline]
             fn from_mut_byte_slice<T: AsMut<[u8]> + ?Sized>(slice: &mut T) -> Result<&mut [[$to; N]], Error> {
                 let slice = slice.as_mut();
                 let len = check_constraints::<[$to; N]>(slice)?;
@@ -288,6 +294,7 @@ macro_rules! impl_trait_array (
         }
 
         unsafe impl<const N: usize> ToByteSlice for [$to; N] {
+            #[inline]
             fn to_byte_slice<T: AsRef<[[$to; N]]> + ?Sized>(slice: &T) -> &[u8] {
                 let slice = slice.as_ref();
                 let len = slice.len() * mem::size_of::<[$to; N]>();
@@ -298,6 +305,7 @@ macro_rules! impl_trait_array (
         }
 
         unsafe impl<const N: usize> ToMutByteSlice for [$to; N] {
+            #[inline]
             fn to_mut_byte_slice<T: AsMut<[[$to; N]]> + ?Sized>(slice: &mut T) -> &mut [u8] {
                 let slice = slice.as_mut();
                 let len = slice.len() * mem::size_of::<[$to; N]>();
@@ -380,6 +388,7 @@ pub trait AsSliceOf {
 }
 
 impl<U: AsRef<[u8]> + ?Sized> AsSliceOf for U {
+    #[inline]
     fn as_slice_of<T: FromByteSlice>(&self) -> Result<&[T], Error> {
         FromByteSlice::from_byte_slice(self)
     }
@@ -409,6 +418,7 @@ pub trait AsMutSliceOf {
 }
 
 impl<U: AsMut<[u8]> + ?Sized> AsMutSliceOf for U {
+    #[inline]
     fn as_mut_slice_of<T: FromByteSlice>(&mut self) -> Result<&mut [T], Error> {
         FromByteSlice::from_mut_byte_slice(self)
     }
@@ -438,6 +448,7 @@ pub trait AsByteSlice<T> {
 }
 
 impl<T: ToByteSlice, U: AsRef<[T]> + ?Sized> AsByteSlice<T> for U {
+    #[inline]
     fn as_byte_slice(&self) -> &[u8] {
         ToByteSlice::to_byte_slice(self)
     }
@@ -467,6 +478,7 @@ pub trait AsMutByteSlice<T> {
 }
 
 impl<T: ToMutByteSlice, U: AsMut<[T]> + ?Sized> AsMutByteSlice<T> for U {
+    #[inline]
     fn as_mut_byte_slice(&mut self) -> &mut [u8] {
         ToMutByteSlice::to_mut_byte_slice(self)
     }
@@ -507,12 +519,14 @@ impl TypeName for () {
 }
 
 unsafe impl ToByteSlice for () {
+    #[inline]
     fn to_byte_slice<T: AsRef<[()]> + ?Sized>(_: &T) -> &[u8] {
         &[]
     }
 }
 
 unsafe impl ToMutByteSlice for () {
+    #[inline]
     fn to_mut_byte_slice<T: AsMut<[()]> + ?Sized>(_: &mut T) -> &mut [u8] {
         &mut []
     }
