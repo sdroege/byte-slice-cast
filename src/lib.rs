@@ -3,6 +3,7 @@
 // Licensed under the MIT license, see the LICENSE file or <http://opensource.org/licenses/MIT>
 
 #![cfg_attr(not(feature = "std"), no_std)]
+#![allow(clippy::missing_safety_doc)]
 
 //! Safely cast bytes slices from/to slices of built-in fundamental numeric types.
 //!
