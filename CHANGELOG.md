@@ -5,6 +5,10 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html),
 specifically the [variant used by Rust](http://doc.crates.io/manifest.html#the-version-field).
 
+## [1.2.2] - 2022-10-28
+### Changed
+- Fix a couple of clippy warnings in the tests.
+
 ## [1.2.1] - 2022-02-25
 ### Changed
 - Make trait methods `#[inline]`. This allows the compiler to make the call a
