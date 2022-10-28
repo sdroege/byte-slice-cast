@@ -560,14 +560,14 @@ mod tests {
         }
 
         assert_eq!(
-            (&bytes[1..]).as_slice_of::<u16>(),
+            (bytes[1..]).as_slice_of::<u16>(),
             Err(Error::AlignmentMismatch {
                 dst_type: "u16",
                 dst_minimum_alignment: mem::align_of::<u16>()
             })
         );
         assert_eq!(
-            (&bytes[0..15]).as_slice_of::<u16>(),
+            (bytes[0..15]).as_slice_of::<u16>(),
             Err(Error::LengthMismatch {
                 dst_type: "u16",
                 src_slice_size: 15,
@@ -583,15 +583,12 @@ mod tests {
         let slice: [u16; 8] = [0, 1, 2, 3, 4, 5, 6, 7];
         let bytes = slice.as_byte_slice();
 
-        let error = (&bytes[1..]).as_slice_of::<u16>().unwrap_err().to_string();
+        let error = (bytes[1..]).as_slice_of::<u16>().unwrap_err().to_string();
         assert_eq!(
             error,
             "cannot cast a &[u8] into a &[u16]: the slice's address is not divisible by the minimum alignment (2) of u16",
         );
-        let error = (&bytes[0..15])
-            .as_slice_of::<u16>()
-            .unwrap_err()
-            .to_string();
+        let error = (bytes[0..15]).as_slice_of::<u16>().unwrap_err().to_string();
         assert_eq!(
             error,
             "cannot cast a &[u8] into a &[u16]: the size (15) of the slice is not divisible by the size (2) of u16"
@@ -610,14 +607,14 @@ mod tests {
         }
 
         assert_eq!(
-            (&bytes[1..]).as_slice_of::<u32>(),
+            (bytes[1..]).as_slice_of::<u32>(),
             Err(Error::AlignmentMismatch {
                 dst_type: "u32",
                 dst_minimum_alignment: mem::align_of::<u32>()
             })
         );
         assert_eq!(
-            (&bytes[0..15]).as_slice_of::<u32>(),
+            (bytes[0..15]).as_slice_of::<u32>(),
             Err(Error::LengthMismatch {
                 dst_type: "u32",
                 src_slice_size: 15,
@@ -639,14 +636,14 @@ mod tests {
         }
 
         assert_eq!(
-            (&bytes[1..]).as_slice_of::<u64>(),
+            (bytes[1..]).as_slice_of::<u64>(),
             Err(Error::AlignmentMismatch {
                 dst_type: "u64",
                 dst_minimum_alignment: mem::align_of::<u64>()
             })
         );
         assert_eq!(
-            (&bytes[0..15]).as_slice_of::<u64>(),
+            (bytes[0..15]).as_slice_of::<u64>(),
             Err(Error::LengthMismatch {
                 dst_type: "u64",
                 src_slice_size: 15,
@@ -686,14 +683,14 @@ mod tests {
         }
 
         assert_eq!(
-            (&bytes[1..]).as_slice_of::<usize>(),
+            (bytes[1..]).as_slice_of::<usize>(),
             Err(Error::AlignmentMismatch {
                 dst_type: "usize",
                 dst_minimum_alignment: mem::align_of::<usize>()
             })
         );
         assert_eq!(
-            (&bytes[0..3]).as_slice_of::<usize>(),
+            (bytes[0..3]).as_slice_of::<usize>(),
             Err(Error::LengthMismatch {
                 dst_type: "usize",
                 src_slice_size: 3,
@@ -727,14 +724,14 @@ mod tests {
         };
 
         assert_eq!(
-            (&bytes[1..]).as_slice_of::<f32>(),
+            (bytes[1..]).as_slice_of::<f32>(),
             Err(Error::AlignmentMismatch {
                 dst_type: "f32",
                 dst_minimum_alignment: mem::align_of::<f32>()
             })
         );
         assert_eq!(
-            (&bytes[0..15]).as_slice_of::<f32>(),
+            (bytes[0..15]).as_slice_of::<f32>(),
             Err(Error::LengthMismatch {
                 dst_type: "f32",
                 src_slice_size: 15,
@@ -768,14 +765,14 @@ mod tests {
         };
 
         assert_eq!(
-            (&bytes[1..]).as_slice_of::<f64>(),
+            (bytes[1..]).as_slice_of::<f64>(),
             Err(Error::AlignmentMismatch {
                 dst_type: "f64",
                 dst_minimum_alignment: mem::align_of::<f64>()
             })
         );
         assert_eq!(
-            (&bytes[0..15]).as_slice_of::<f64>(),
+            (bytes[0..15]).as_slice_of::<f64>(),
             Err(Error::LengthMismatch {
                 dst_type: "f64",
                 src_slice_size: 15,
@@ -798,14 +795,14 @@ mod tests {
         }
 
         assert_eq!(
-            (&mut bytes[1..]).as_mut_slice_of::<u16>(),
+            (bytes[1..]).as_mut_slice_of::<u16>(),
             Err(Error::AlignmentMismatch {
                 dst_type: "u16",
                 dst_minimum_alignment: mem::align_of::<u16>()
             })
         );
         assert_eq!(
-            (&mut bytes[0..15]).as_mut_slice_of::<u16>(),
+            (bytes[0..15]).as_mut_slice_of::<u16>(),
             Err(Error::LengthMismatch {
                 dst_type: "u16",
                 src_slice_size: 15,
@@ -828,14 +825,14 @@ mod tests {
         }
 
         assert_eq!(
-            (&bytes[1..]).as_slice_of::<u16>(),
+            (bytes[1..]).as_slice_of::<u16>(),
             Err(Error::AlignmentMismatch {
                 dst_type: "u16",
                 dst_minimum_alignment: mem::align_of::<u16>()
             })
         );
         assert_eq!(
-            (&bytes[0..15]).as_slice_of::<u16>(),
+            (bytes[0..15]).as_slice_of::<u16>(),
             Err(Error::LengthMismatch {
                 dst_type: "u16",
                 src_slice_size: 15,
@@ -859,14 +856,14 @@ mod tests {
         }
 
         assert_eq!(
-            (&mut bytes[1..]).as_mut_slice_of::<u16>(),
+            (bytes[1..]).as_mut_slice_of::<u16>(),
             Err(Error::AlignmentMismatch {
                 dst_type: "u16",
                 dst_minimum_alignment: mem::align_of::<u16>()
             })
         );
         assert_eq!(
-            (&mut bytes[0..15]).as_mut_slice_of::<u16>(),
+            (bytes[0..15]).as_mut_slice_of::<u16>(),
             Err(Error::LengthMismatch {
                 dst_type: "u16",
                 src_slice_size: 15,
@@ -889,14 +886,14 @@ mod tests {
         }
 
         assert_eq!(
-            (&bytes[1..]).as_slice_of::<u16>(),
+            (bytes[1..]).as_slice_of::<u16>(),
             Err(Error::AlignmentMismatch {
                 dst_type: "u16",
                 dst_minimum_alignment: mem::align_of::<u16>()
             })
         );
         assert_eq!(
-            (&bytes[0..15]).as_slice_of::<u16>(),
+            (bytes[0..15]).as_slice_of::<u16>(),
             Err(Error::LengthMismatch {
                 dst_type: "u16",
                 src_slice_size: 15,
@@ -920,14 +917,14 @@ mod tests {
         }
 
         assert_eq!(
-            (&mut bytes[1..]).as_mut_slice_of::<u16>(),
+            (bytes[1..]).as_mut_slice_of::<u16>(),
             Err(Error::AlignmentMismatch {
                 dst_type: "u16",
                 dst_minimum_alignment: mem::align_of::<u16>()
             })
         );
         assert_eq!(
-            (&mut bytes[0..15]).as_mut_slice_of::<u16>(),
+            (bytes[0..15]).as_mut_slice_of::<u16>(),
             Err(Error::LengthMismatch {
                 dst_type: "u16",
                 src_slice_size: 15,
@@ -984,14 +981,14 @@ mod tests {
         };
 
         assert_eq!(
-            (&bytes[1..]).as_slice_of::<[u16; 3]>(),
+            (bytes[1..]).as_slice_of::<[u16; 3]>(),
             Err(Error::AlignmentMismatch {
                 dst_type: "[u16 ; N]",
                 dst_minimum_alignment: mem::align_of::<[u16; 3]>()
             })
         );
         assert_eq!(
-            (&bytes[0..4]).as_slice_of::<[u16; 3]>(),
+            (bytes[0..4]).as_slice_of::<[u16; 3]>(),
             Err(Error::LengthMismatch {
                 dst_type: "[u16 ; N]",
                 src_slice_size: 4,
