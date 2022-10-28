@@ -21,6 +21,3 @@ edition = "2018"
 [features]
 default = ["std"]
 std = []
-
-[badges]
-travis-ci = { repository = "sdroege/byte-slice-cast", branch = "master" }
