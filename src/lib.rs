@@ -983,14 +983,14 @@ mod tests {
         assert_eq!(
             (bytes[1..]).as_slice_of::<[u16; 3]>(),
             Err(Error::AlignmentMismatch {
-                dst_type: "[u16 ; N]",
+                dst_type: "[u16; N]",
                 dst_minimum_alignment: mem::align_of::<[u16; 3]>()
             })
         );
         assert_eq!(
             (bytes[0..4]).as_slice_of::<[u16; 3]>(),
             Err(Error::LengthMismatch {
-                dst_type: "[u16 ; N]",
+                dst_type: "[u16; N]",
                 src_slice_size: 4,
                 dst_type_size: 6
             })
