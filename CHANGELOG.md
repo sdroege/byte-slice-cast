@@ -5,6 +5,11 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html),
 specifically the [variant used by Rust](http://doc.crates.io/manifest.html#the-version-field).
 
+## [1.2.3] - 2025-03-03
+### Changed
+- Fix tests for Rust 1.81.
+- Declare Rust 1.51 as MSRV.
+
 ## [1.2.2] - 2022-10-28
 ### Changed
 - Fix a couple of clippy warnings in the tests.
@@ -84,7 +89,10 @@ specifically the [variant used by Rust](http://doc.crates.io/manifest.html#the-v
 ## [0.1.0] - 2017-08-14
 - Initial release of the `byte-slice-cast` crate.
 
-[Unreleased]: https://github.com/sdroege/byte-slice-cast/compare/1.2.0...HEAD
+[Unreleased]: https://github.com/sdroege/byte-slice-cast/compare/1.2.3...HEAD
+[1.2.3]: https://github.com/sdroege/byte-slice-cast/compare/1.2.2...1.2.3
+[1.2.2]: https://github.com/sdroege/byte-slice-cast/compare/1.2.1...1.2.2
+[1.2.1]: https://github.com/sdroege/byte-slice-cast/compare/1.2.0...1.2.1
 [1.2.0]: https://github.com/sdroege/byte-slice-cast/compare/1.1.0...1.2.0
 [1.1.0]: https://github.com/sdroege/byte-slice-cast/compare/1.0.0...1.1.0
 [1.0.0]: https://github.com/sdroege/byte-slice-cast/compare/0.3.5...1.0.0
